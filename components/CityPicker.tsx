@@ -20,10 +20,19 @@ type PlaceItem = {
 type Props = {
   value: SelectedPlace | null;
   onChange: (place: SelectedPlace | null) => void;
+  label?: string;
+  inputId?: string;
+  placeholder?: string;
 };
 
 // Поле выбора города с автоподсказками и геокодированием
-export function CityPicker({ value, onChange }: Props) {
+export function CityPicker({
+  value,
+  onChange,
+  label = "Место рождения",
+  inputId = "city",
+  placeholder = "Начните вводить город…",
+}: Props) {
   const [query, setQuery] = useState(value?.label ?? "");
   const [items, setItems] = useState<PlaceItem[]>([]);
   const [open, setOpen] = useState(false);
@@ -35,23 +44,35 @@ export function CityPicker({ value, onChange }: Props) {
   }, [value]);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/places/search?q=${encodeURIComponent(query)}`);
+        const res = await fetch(
+          `/api/places/search?q=${encodeURIComponent(query)}`,
+          { signal: controller.signal }
+        );
         if (!res.ok) {
           setItems([]);
           return;
         }
         const data = await res.json();
         setItems(data.places ?? []);
-      } catch {
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
         setItems([]);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
-    }, 300);
-    return () => clearTimeout(timer);
+    }, 600);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [query]);
 
   useEffect(() => {
@@ -77,13 +98,13 @@ export function CityPicker({ value, onChange }: Props) {
 
   return (
     <div className="city-picker" ref={wrapRef}>
-      <label htmlFor="city">Место рождения</label>
+      <label htmlFor={inputId}>{label}</label>
       <input
-        id="city"
+        id={inputId}
         type="text"
         value={query}
         autoComplete="off"
-        placeholder="Начните вводить город…"
+        placeholder={placeholder}
         onFocus={() => setOpen(true)}
         onChange={(e) => {
           setQuery(e.target.value);

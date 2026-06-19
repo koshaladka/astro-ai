@@ -1,10 +1,19 @@
+import {
+  getDaDataCredentials,
+  getPlacesProvider,
+} from "@/lib/utils/places-provider";
+
 export type PlaceSuggestion = {
   id: string;
   label: string;
   placeName: string;
   latitude: number;
   longitude: number;
-  source: "table" | "nominatim";
+  source: "table" | "nominatim" | "dadata";
+};
+
+type SearchOptions = {
+  signal?: AbortSignal;
 };
 
 // Популярные города для быстрого выбора
@@ -26,8 +35,14 @@ const ALIASES: Record<string, PlaceSuggestion> = {
   питер: POPULAR_CITIES[1],
 };
 
-// Ищет города по строке — сначала локальная таблица, потом Nominatim
-export async function searchPlaces(query: string): Promise<PlaceSuggestion[]> {
+const NOMINATIM_TIMEOUT_MS = 10_000;
+const DADATA_TIMEOUT_MS = 8_000;
+
+// Ищет города по строке — сначала локальная таблица, потом внешний провайдер
+export async function searchPlaces(
+  query: string,
+  options?: SearchOptions
+): Promise<PlaceSuggestion[]> {
   const q = query.trim();
   if (!q) return POPULAR_CITIES;
 
@@ -47,7 +62,7 @@ export async function searchPlaces(query: string): Promise<PlaceSuggestion[]> {
     return dedupe(results).slice(0, 8);
   }
 
-  const remote = await fetchNominatim(q);
+  const remote = await fetchRemotePlaces(q, options?.signal);
   return dedupe(remote).slice(0, 8);
 }
 
@@ -77,31 +92,47 @@ export async function geocodePlace(
     return { latitude: tableHit.latitude, longitude: tableHit.longitude, source: "table" as const };
   }
 
-  const remote = await fetchNominatim(name);
+  const remote = await fetchRemotePlaces(name);
   if (remote[0]) {
     return {
       latitude: remote[0].latitude,
       longitude: remote[0].longitude,
-      source: "nominatim" as const,
+      source: remote[0].source,
     };
   }
 
   throw new Error(`Город «${name}» не найден. Выберите из списка.`);
 }
 
-const NOMINATIM_TIMEOUT_MS = 4000;
+// Запрашивает подсказки у выбранного в env провайдера
+async function fetchRemotePlaces(
+  query: string,
+  signal?: AbortSignal
+): Promise<PlaceSuggestion[]> {
+  if (getPlacesProvider() === "dadata") {
+    return fetchDaData(query, signal);
+  }
+
+  return fetchNominatim(query, signal);
+}
 
 // Запрашивает подсказки у OpenStreetMap Nominatim
-async function fetchNominatim(query: string): Promise<PlaceSuggestion[]> {
+async function fetchNominatim(
+  query: string,
+  externalSignal?: AbortSignal
+): Promise<PlaceSuggestion[]> {
   const url = new URL("https://nominatim.openstreetmap.org/search");
   url.searchParams.set("q", query);
   url.searchParams.set("format", "json");
-  url.searchParams.set("limit", "5");
+  url.searchParams.set("limit", "8");
   url.searchParams.set("accept-language", "ru");
+  url.searchParams.set("countrycodes", "ru");
   url.searchParams.set("featuretype", "city");
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), NOMINATIM_TIMEOUT_MS);
+  const onExternalAbort = () => controller.abort();
+  externalSignal?.addEventListener("abort", onExternalAbort);
 
   try {
     const res = await fetch(url.toString(), {
@@ -131,7 +162,106 @@ async function fetchNominatim(query: string): Promise<PlaceSuggestion[]> {
     return [];
   } finally {
     clearTimeout(timer);
+    externalSignal?.removeEventListener("abort", onExternalAbort);
   }
+}
+
+// Запрашивает подсказки городов у DaData
+async function fetchDaData(
+  query: string,
+  externalSignal?: AbortSignal
+): Promise<PlaceSuggestion[]> {
+  const creds = getDaDataCredentials();
+  if (!creds) {
+    console.error("PLACES_PROVIDER=dadata, но DADATA_API_KEY или DADATA_SECRET_KEY не заданы");
+    return [];
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DADATA_TIMEOUT_MS);
+  const onExternalAbort = () => controller.abort();
+  externalSignal?.addEventListener("abort", onExternalAbort);
+
+  try {
+    const res = await fetch(
+      "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Token ${creds.apiKey}`,
+          "X-Secret": creds.secret,
+        },
+        body: JSON.stringify({
+          query,
+          count: 8,
+          from_bound: { value: "city" },
+          to_bound: { value: "settlement" },
+          locations: [{ country: "Россия" }],
+        }),
+        signal: controller.signal,
+      }
+    );
+
+    if (!res.ok) return [];
+
+    const data = (await res.json()) as {
+      suggestions?: Array<{
+        value: string;
+        data: {
+          fias_id?: string | null;
+          geo_lat?: string | null;
+          geo_lon?: string | null;
+          city?: string | null;
+          settlement?: string | null;
+        };
+      }>;
+    };
+
+    return (data.suggestions ?? [])
+      .map(mapDaDataSuggestion)
+      .filter((item): item is PlaceSuggestion => item != null);
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timer);
+    externalSignal?.removeEventListener("abort", onExternalAbort);
+  }
+}
+
+// Превращает ответ DaData в подсказку города
+function mapDaDataSuggestion(suggestion: {
+  value: string;
+  data: {
+    fias_id?: string | null;
+    geo_lat?: string | null;
+    geo_lon?: string | null;
+    city?: string | null;
+    settlement?: string | null;
+  };
+}): PlaceSuggestion | null {
+  const latitude = suggestion.data.geo_lat ? Number(suggestion.data.geo_lat) : NaN;
+  const longitude = suggestion.data.geo_lon ? Number(suggestion.data.geo_lon) : NaN;
+
+  if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+    return null;
+  }
+
+  const placeName =
+    suggestion.data.city ||
+    suggestion.data.settlement ||
+    suggestion.value.split(",")[0]?.trim() ||
+    suggestion.value;
+
+  return {
+    id: suggestion.data.fias_id || suggestion.value,
+    label: suggestion.value,
+    placeName,
+    latitude,
+    longitude,
+    source: "dadata",
+  };
 }
 
 function dedupe(items: PlaceSuggestion[]) {

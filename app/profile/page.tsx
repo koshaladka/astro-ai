@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { CityPicker, type SelectedPlace } from "@/components/CityPicker";
 
 type BirthPreferences = {
   date?: string;
@@ -30,6 +31,7 @@ export default function ProfilePage() {
   const [charts, setCharts] = useState<ChartItem[]>([]);
   const [name, setName] = useState("");
   const [prefs, setPrefs] = useState<BirthPreferences>({});
+  const [place, setPlace] = useState<SelectedPlace | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -43,7 +45,20 @@ export default function ProfilePage() {
         setProfile(d.profile);
         setCharts(d.charts ?? []);
         setName(d.profile.name ?? "");
-        setPrefs(d.profile.birthPreferences ?? {});
+        const birthPrefs = d.profile.birthPreferences ?? {};
+        setPrefs(birthPrefs);
+        if (
+          birthPrefs.placeName &&
+          birthPrefs.latitude != null &&
+          birthPrefs.longitude != null
+        ) {
+          setPlace({
+            placeName: birthPrefs.placeName,
+            latitude: birthPrefs.latitude,
+            longitude: birthPrefs.longitude,
+            label: birthPrefs.placeName,
+          });
+        }
       })
       .catch((e) => setError(e instanceof Error ? e.message : "Ошибка"))
       .finally(() => setLoading(false));
@@ -126,12 +141,29 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <label htmlFor="place">Место</label>
-          <input
-            id="place"
-            value={prefs.placeName ?? ""}
-            onChange={(e) => setPrefs({ ...prefs, placeName: e.target.value })}
+          <CityPicker
+            inputId="place"
+            label="Место"
             placeholder="Город"
+            value={place}
+            onChange={(selected) => {
+              setPlace(selected);
+              setPrefs((prev) =>
+                selected
+                  ? {
+                      ...prev,
+                      placeName: selected.placeName,
+                      latitude: selected.latitude,
+                      longitude: selected.longitude,
+                    }
+                  : {
+                      ...prev,
+                      placeName: undefined,
+                      latitude: undefined,
+                      longitude: undefined,
+                    }
+              );
+            }}
           />
 
           <button type="submit" disabled={saving}>

@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 import type { ApiPayload } from "@/lib/schemas/birth-payload.zod";
+import { proxyFetch } from "@/lib/utils/proxy-fetch";
 
 const API_URLS = {
   planets: "https://json.freeastrologyapi.com/western/planets",
@@ -35,7 +36,7 @@ async function fetchEndpoint(url: string, body: ApiPayload) {
     throw new Error("ASTROLOGY_API_KEY не задан в .env");
   }
 
-  const response = await fetch(url, {
+  const response = await proxyFetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
