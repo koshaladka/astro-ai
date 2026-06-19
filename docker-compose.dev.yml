@@ -1,0 +1,23 @@
+# Только MongoDB — для локальной разработки без Docker Hub (Langfuse не нужен)
+services:
+  mongo:
+    image: mongo:7.0
+    pull_policy: if_not_present
+    restart: unless-stopped
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-astro}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-astrosecret}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-astro}
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  mongo_data:

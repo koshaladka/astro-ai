@@ -1,0 +1,151 @@
+{
+  "statusCode": 200,
+  "output": {
+    "Houses": [
+      {
+        "House": 1,
+        "degree": 119.51749693422784,
+        "normDegree": 29.517496934227836,
+        "zodiac_sign": {
+          "number": 4,
+          "name": {
+            "en": "Cancer",
+            "ru": "Рак"
+          }
+        }
+      },
+      {
+        "House": 2,
+        "degree": 133.93204344778678,
+        "normDegree": 13.932043447786782,
+        "zodiac_sign": {
+          "number": 5,
+          "name": {
+            "en": "Leo",
+            "ru": "Лев"
+          }
+        }
+      },
+      {
+        "House": 3,
+        "degree": 152.3264273530138,
+        "normDegree": 2.3264273530137984,
+        "zodiac_sign": {
+          "number": 6,
+          "name": {
+            "en": "Virgo",
+            "ru": "Дева"
+          }
+        }
+      },
+      {
+        "House": 4,
+        "degree": 178.87252407542383,
+        "normDegree": 28.872524075423826,
+        "zodiac_sign": {
+          "number": 6,
+          "name": {
+            "en": "Virgo",
+            "ru": "Дева"
+          }
+        }
+      },
+      {
+        "House": 5,
+        "degree": 218.8492498708056,
+        "normDegree": 8.849249870805608,
+        "zodiac_sign": {
+          "number": 8,
+          "name": {
+            "en": "Scorpio",
+            "ru": "Скорпион"
+          }
+        }
+      },
+      {
+        "House": 6,
+        "degree": 265.82158605064353,
+        "normDegree": 25.821586050643532,
+        "zodiac_sign": {
+          "number": 9,
+          "name": {
+            "en": "Sagittarius",
+            "ru": "Стрелец"
+          }
+        }
+      },
+      {
+        "House": 7,
+        "degree": 299.51749693422784,
+        "normDegree": 29.517496934227836,
+        "zodiac_sign": {
+          "number": 10,
+          "name": {
+            "en": "Capricorn",
+            "ru": "Козерог"
+          }
+        }
+      },
+      {
+        "House": 8,
+        "degree": 313.9320434477868,
+        "normDegree": 13.932043447786782,
+        "zodiac_sign": {
+          "number": 11,
+          "name": {
+            "en": "Aquarius",
+            "ru": "Водолей"
+          }
+        }
+      },
+      {
+        "House": 9,
+        "degree": 332.3264273530138,
+        "normDegree": 2.3264273530137984,
+        "zodiac_sign": {
+          "number": 12,
+          "name": {
+            "en": "Pisces",
+            "ru": "Рыбы"
+          }
+        }
+      },
+      {
+        "House": 10,
+        "degree": 358.8725240754239,
+        "normDegree": 28.872524075423883,
+        "zodiac_sign": {
+          "number": 12,
+          "name": {
+            "en": "Pisces",
+            "ru": "Рыбы"
+          }
+        }
+      },
+      {
+        "House": 11,
+        "degree": 38.84924987080561,
+        "normDegree": 8.849249870805608,
+        "zodiac_sign": {
+          "number": 2,
+          "name": {
+            "en": "Taurus",
+            "ru": "Телец"
+          }
+        }
+      },
+      {
+        "House": 12,
+        "degree": 85.82158605064352,
+        "normDegree": 25.821586050643518,
+        "zodiac_sign": {
+          "number": 3,
+          "name": {
+            "en": "Gemini",
+            "ru": "Близнецы"
+          }
+        }
+      }
+    ]
+  }
+}

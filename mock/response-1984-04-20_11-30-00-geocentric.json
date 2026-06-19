@@ -1,0 +1,357 @@
+{
+  "statusCode": 200,
+  "output": [
+    {
+      "planet": {
+        "en": "Ascendant",
+        "ru": "Асцендент (Ascendent)"
+      },
+      "fullDegree": 119.51749693422784,
+      "normDegree": 29.517496934227836,
+      "isRetro": "False",
+      "zodiac_sign": {
+        "number": 4,
+        "name": {
+          "en": "Cancer",
+          "ru": "Рак"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Sun",
+        "ru": "Солнце"
+      },
+      "fullDegree": 30.405086944435258,
+      "normDegree": 0.40508694443525783,
+      "isRetro": "False",
+      "zodiac_sign": {
+        "number": 2,
+        "name": {
+          "en": "Taurus",
+          "ru": "Телец"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Moon",
+        "ru": "Луна"
+      },
+      "fullDegree": 269.08545700981534,
+      "normDegree": 29.085457009815343,
+      "isRetro": "False",
+      "zodiac_sign": {
+        "number": 9,
+        "name": {
+          "en": "Sagittarius",
+          "ru": "Стрелец"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Mars",
+        "ru": "Марс"
+      },
+      "fullDegree": 236.97192618537628,
+      "normDegree": 26.971926185376276,
+      "isRetro": "true",
+      "zodiac_sign": {
+        "number": 8,
+        "name": {
+          "en": "Scorpio",
+          "ru": "Скорпион"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Mercury",
+        "ru": "Меркурий"
+      },
+      "fullDegree": 33.50573463576677,
+      "normDegree": 3.505734635766771,
+      "isRetro": "true",
+      "zodiac_sign": {
+        "number": 2,
+        "name": {
+          "en": "Taurus",
+          "ru": "Телец"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Jupiter",
+        "ru": "Юпитер"
+      },
+      "fullDegree": 282.83156663785417,
+      "normDegree": 12.831566637854166,
+      "isRetro": "false",
+      "zodiac_sign": {
+        "number": 10,
+        "name": {
+          "en": "Capricorn",
+          "ru": "Козерог"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Venus",
+        "ru": "Венера"
+      },
+      "fullDegree": 15.373116434909319,
+      "normDegree": 15.373116434909319,
+      "isRetro": "false",
+      "zodiac_sign": {
+        "number": 1,
+        "name": {
+          "en": "Aries",
+          "ru": "Овен"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Saturn",
+        "ru": "Сатурн"
+      },
+      "fullDegree": 224.0315074229501,
+      "normDegree": 14.031507422950114,
+      "isRetro": "true",
+      "zodiac_sign": {
+        "number": 8,
+        "name": {
+          "en": "Scorpio",
+          "ru": "Скорпион"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Uranus",
+        "ru": "Уран"
+      },
+      "fullDegree": 253.10765512324465,
+      "normDegree": 13.107655123244655,
+      "isRetro": "true",
+      "zodiac_sign": {
+        "number": 9,
+        "name": {
+          "en": "Sagittarius",
+          "ru": "Стрелец"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Neptune",
+        "ru": "Нептун"
+      },
+      "fullDegree": 271.3438463545149,
+      "normDegree": 1.3438463545148807,
+      "isRetro": "true",
+      "zodiac_sign": {
+        "number": 10,
+        "name": {
+          "en": "Capricorn",
+          "ru": "Козерог"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Pluto",
+        "ru": "Плутон"
+      },
+      "fullDegree": 210.7415222221207,
+      "normDegree": 0.7415222221206932,
+      "isRetro": "true",
+      "zodiac_sign": {
+        "number": 8,
+        "name": {
+          "en": "Scorpio",
+          "ru": "Скорпион"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Ceres",
+        "ru": "Церера"
+      },
+      "fullDegree": 13.642736289220943,
+      "normDegree": 13.642736289220943,
+      "isRetro": "False",
+      "zodiac_sign": {
+        "number": 1,
+        "name": {
+          "en": "Aries",
+          "ru": "Овен"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Vesta",
+        "ru": "Веста"
+      },
+      "fullDegree": 90.60340181213938,
+      "normDegree": 0.6034018121393814,
+      "isRetro": "False",
+      "zodiac_sign": {
+        "number": 4,
+        "name": {
+          "en": "Cancer",
+          "ru": "Рак"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Juno",
+        "ru": "Юнона"
+      },
+      "fullDegree": 78.92934553574324,
+      "normDegree": 18.929345535743238,
+      "isRetro": "False",
+      "zodiac_sign": {
+        "number": 3,
+        "name": {
+          "en": "Gemini",
+          "ru": "Близнецы"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Pallas",
+        "ru": "Паллада"
+      },
+      "fullDegree": 340.0965742017252,
+      "normDegree": 10.096574201725218,
+      "isRetro": "False",
+      "zodiac_sign": {
+        "number": 12,
+        "name": {
+          "en": "Pisces",
+          "ru": "Рыбы"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Chiron",
+        "ru": "Хирон"
+      },
+      "fullDegree": 60.66229474374751,
+      "normDegree": 0.6622947437475091,
+      "isRetro": "False",
+      "zodiac_sign": {
+        "number": 3,
+        "name": {
+          "en": "Gemini",
+          "ru": "Близнецы"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Lilith",
+        "ru": "Лилит"
+      },
+      "fullDegree": 344.5865027635373,
+      "normDegree": 14.586502763537283,
+      "isRetro": "False",
+      "zodiac_sign": {
+        "number": 12,
+        "name": {
+          "en": "Pisces",
+          "ru": "Рыбы"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Mean Node",
+        "ru": "Средний узел"
+      },
+      "fullDegree": 68.69141991337574,
+      "normDegree": 8.69141991337574,
+      "isRetro": "True",
+      "zodiac_sign": {
+        "number": 3,
+        "name": {
+          "en": "Gemini",
+          "ru": "Близнецы"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "True Node",
+        "ru": "Истинный узел"
+      },
+      "fullDegree": 67.17492243125186,
+      "normDegree": 7.174922431251858,
+      "isRetro": "True",
+      "zodiac_sign": {
+        "number": 3,
+        "name": {
+          "en": "Gemini",
+          "ru": "Близнецы"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "Descendant",
+        "ru": "Десцендент"
+      },
+      "fullDegree": 299.51749693422784,
+      "normDegree": 29.517496934227836,
+      "isRetro": "False",
+      "zodiac_sign": {
+        "number": 10,
+        "name": {
+          "en": "Capricorn",
+          "ru": "Козерог"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "MC",
+        "ru": "Медиум Цели"
+      },
+      "fullDegree": 358.8725240754239,
+      "normDegree": 28.872524075423883,
+      "isRetro": "False",
+      "zodiac_sign": {
+        "number": 12,
+        "name": {
+          "en": "Pisces",
+          "ru": "Рыбы"
+        }
+      }
+    },
+    {
+      "planet": {
+        "en": "IC",
+        "ru": "Имум Цели"
+      },
+      "fullDegree": 178.87252407542383,
+      "normDegree": 28.872524075423826,
+      "isRetro": "False",
+      "zodiac_sign": {
+        "number": 6,
+        "name": {
+          "en": "Virgo",
+          "ru": "Дева"
+        }
+      }
+    }
+  ]
+}

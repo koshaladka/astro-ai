@@ -1,0 +1,41 @@
+include:
+  - path: docker/langfuse-compose.yml
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MONGODB_URI: mongodb://${MONGO_ROOT_USER:-astro}:${MONGO_ROOT_PASSWORD:-astrosecret}@mongo:27017/${MONGO_DB:-astro}?authSource=admin
+      LANGFUSE_BASE_URL: http://langfuse-web:3000
+    depends_on:
+      mongo:
+        condition: service_healthy
+      langfuse-web:
+        condition: service_started
+    ports:
+      - "${APP_PORT:-4000}:3000"
+    command: ["npm", "start"]
+
+  mongo:
+    image: mongo:7.0
+    pull_policy: if_not_present
+    restart: unless-stopped
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-astro}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-astrosecret}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-astro}
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  mongo_data:

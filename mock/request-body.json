@@ -1,0 +1,17 @@
+{
+  "year": 1984,
+  "month": 4,
+  "date": 20,
+  "hours": 11,
+  "minutes": 30,
+  "seconds": 0,
+  "latitude": 55.67719,
+  "longitude": 37.89322,
+  "timezone": 4,
+  "config": {
+    "observation_point": "geocentric",
+    "ayanamsha": "tropical",
+    "house_system": "Placidus",
+    "language": "ru"
+  }
+}
