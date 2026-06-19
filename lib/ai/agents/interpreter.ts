@@ -1,44 +1,8 @@
 import { getAiProvider } from "@/lib/ai/providers";
+import { compressChartContext } from "@/lib/astrology/chart-format";
 import { tracedChat } from "@/lib/observability/langfuse";
 
-type PlanetRow = {
-  planet?: { ru?: string; en?: string };
-  zodiac_sign?: { name?: { ru?: string } };
-  isRetro?: string;
-};
-
-type HousesData = {
-  output?: {
-    Houses?: Array<{ House?: number; zodiac_sign?: { name?: { ru?: string } } }>;
-    Ascendant?: { zodiac_sign?: { name?: { ru?: string } } };
-    Midheaven?: { zodiac_sign?: { name?: { ru?: string } } };
-  };
-};
-
-// Сжимает raw-ответ API для промпта интерпретатора
-export function compressChartContext(planets: unknown, houses: unknown) {
-  const planetRows = (planets as { output?: PlanetRow[] })?.output ?? [];
-  const houseData = (houses as HousesData)?.output;
-
-  const planetLines = planetRows
-    .slice(0, 12)
-    .map((p) => {
-      const name = p.planet?.ru || p.planet?.en || "?";
-      const sign = p.zodiac_sign?.name?.ru || "?";
-      const retro = p.isRetro === "true" ? " (R)" : "";
-      return `${name}: ${sign}${retro}`;
-    })
-    .join("\n");
-
-  const asc = houseData?.Ascendant?.zodiac_sign?.name?.ru;
-  const mc = houseData?.Midheaven?.zodiac_sign?.name?.ru;
-  const houseLines =
-    houseData?.Houses?.map(
-      (h) => `Дом ${h.House}: ${h.zodiac_sign?.name?.ru ?? "?"}`
-    ).join("\n") ?? "";
-
-  return { planetLines, asc, mc, houseLines };
-}
+export { compressChartContext };
 
 // Генерирует короткое описание натальной карты на русском
 export async function interpretChart(

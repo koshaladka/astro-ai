@@ -3,28 +3,15 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-
-type PlanetRow = {
-  planet?: { ru?: string; en?: string };
-  zodiac_sign?: { name?: { ru?: string } };
-  isRetro?: string;
-  normDegree?: number;
-};
+import { ChartTables } from "@/components/ChartTables";
 
 type ChartData = {
   chartId: string;
   status: string;
   summary?: string;
   highlights?: string[];
-  planets?: { output?: PlanetRow[] };
-  houses?: {
-    output?: {
-      Houses?: Array<{
-        House?: number;
-        zodiac_sign?: { name?: { ru?: string } };
-      }>;
-    };
-  };
+  planets?: { output?: unknown[] };
+  houses?: { output?: { Houses?: unknown[] } };
   messages?: Array<{ role: string; content: string; createdAt?: string }>;
   error?: string;
   birthInput?: { date?: string; time?: string; placeName?: string };
@@ -121,8 +108,9 @@ export default function ChartPage() {
     );
   }
 
-  const planets = chart.planets?.output ?? [];
-  const houses = chart.houses?.output?.Houses ?? [];
+  const hasTables =
+    (chart.planets?.output?.length ?? 0) > 0 ||
+    (chart.houses?.output?.Houses?.length ?? 0) > 0;
 
   return (
     <main>
@@ -154,56 +142,9 @@ export default function ChartPage() {
         </section>
       )}
 
-      {planets.length > 0 && (
-        <section>
-          <h2 className="section-title">Планеты</h2>
-          <div className="card">
-            <table>
-              <thead>
-                <tr>
-                  <th>Планета</th>
-                  <th>Знак</th>
-                  <th>Градус</th>
-                </tr>
-              </thead>
-              <tbody>
-                {planets.map((p, i) => (
-                  <tr key={i}>
-                    <td>
-                      {p.planet?.ru || p.planet?.en}
-                      {p.isRetro === "true" ? " ℞" : ""}
-                    </td>
-                    <td>{p.zodiac_sign?.name?.ru}</td>
-                    <td>{p.normDegree?.toFixed(1)}°</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
-
-      {houses.length > 0 && (
-        <section>
-          <h2 className="section-title">Дома</h2>
-          <div className="card">
-            <table>
-              <thead>
-                <tr>
-                  <th>Дом</th>
-                  <th>Знак</th>
-                </tr>
-              </thead>
-              <tbody>
-                {houses.map((h, i) => (
-                  <tr key={i}>
-                    <td>{h.House}</td>
-                    <td>{h.zodiac_sign?.name?.ru}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      {hasTables && (
+        <section className="card">
+          <ChartTables planets={chart.planets} houses={chart.houses} />
         </section>
       )}
 

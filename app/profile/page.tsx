@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CityPicker, type SelectedPlace } from "@/components/CityPicker";
+import { ChartTables } from "@/components/ChartTables";
 
 type BirthPreferences = {
   date?: string;
@@ -23,6 +24,8 @@ type ChartItem = {
   status: string;
   summaryPreview?: string;
   birthInput?: { date?: string; time?: string; placeName?: string };
+  planets?: { output?: unknown[] };
+  houses?: { output?: { Houses?: unknown[] } };
   createdAt: string;
 };
 
@@ -188,6 +191,9 @@ export default function ProfilePage() {
                   {c.birthInput?.date} · {c.birthInput?.time} · {c.birthInput?.placeName}
                 </Link>
                 {c.summaryPreview && <p className="hint">{c.summaryPreview}…</p>}
+                {c.status === "complete" && (
+                  <ChartTables planets={c.planets} houses={c.houses} />
+                )}
               </li>
             ))}
           </ul>

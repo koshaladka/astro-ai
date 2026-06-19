@@ -166,16 +166,20 @@ export async function getUserCharts(userId: string) {
 
   const results = await ChartResult.find({ clientId: { $in: clientIds } })
     .sort({ createdAt: -1 })
-    .select("_id status interpretation clientId createdAt")
+    .select("_id status interpretation clientId createdAt planets houses")
     .lean();
 
   return results.map((r) => {
     const client = clientMap.get(String(r.clientId));
+    const status = r.status === "interpreted" ? "complete" : r.status;
+
     return {
       chartId: r._id.toString(),
-      status: r.status,
+      status,
       summaryPreview: r.interpretation?.short?.slice(0, 120),
       birthInput: client?.birthInput,
+      planets: r.planets,
+      houses: r.houses,
       createdAt: r.createdAt,
     };
   });
