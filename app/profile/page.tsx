@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CityPicker, type SelectedPlace } from "@/components/CityPicker";
 import { ChartTables } from "@/components/ChartTables";
+import type { HouseDisplayRow, PlanetDisplayRow } from "@/lib/astrology/chart-format";
 
 type BirthPreferences = {
   date?: string;
@@ -24,8 +25,8 @@ type ChartItem = {
   status: string;
   summaryPreview?: string;
   birthInput?: { date?: string; time?: string; placeName?: string };
-  planets?: { output?: unknown[] };
-  houses?: { output?: { Houses?: unknown[] } };
+  planetsDisplay?: PlanetDisplayRow[];
+  housesDisplay?: HouseDisplayRow[];
   createdAt: string;
 };
 
@@ -192,7 +193,10 @@ export default function ProfilePage() {
                 </Link>
                 {c.summaryPreview && <p className="hint">{c.summaryPreview}…</p>}
                 {c.status === "complete" && (
-                  <ChartTables planets={c.planets} houses={c.houses} />
+                  <ChartTables
+                    planetsDisplay={c.planetsDisplay}
+                    housesDisplay={c.housesDisplay}
+                  />
                 )}
               </li>
             ))}

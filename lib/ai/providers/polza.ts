@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import type { AiProvider } from "./types";
-import { proxyFetch } from "@/lib/utils/proxy-fetch";
+import { loggedFetch } from "@/lib/utils/logged-fetch";
 
 // Создаёт клиент Polza AI через OpenAI-совместимый API
 export function createPolzaProvider(): AiProvider {
@@ -11,7 +11,7 @@ export function createPolzaProvider(): AiProvider {
 
   const baseURL = process.env.POLZA_BASE_URL || "https://polza.ai/api/v1";
   const model = process.env.POLZA_MODEL || "gpt-4o-mini";
-  const client = new OpenAI({ apiKey, baseURL, fetch: proxyFetch });
+  const client = new OpenAI({ apiKey, baseURL, fetch: loggedFetch });
 
   return {
     name: "polza",

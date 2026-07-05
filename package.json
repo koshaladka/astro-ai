@@ -4,20 +4,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "NODE_OPTIONS=--use-system-ca next dev",
-    "build": "NODE_OPTIONS=--use-system-ca next build",
-    "start": "NODE_OPTIONS=--use-system-ca next start",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "lint": "next lint",
-    "start:cli": "NODE_OPTIONS=--use-system-ca node src/index.js",
-    "start:topocentric": "NODE_OPTIONS=--use-system-ca node src/index.js topocentric",
-    "start:houses": "NODE_OPTIONS=--use-system-ca node src/index.js houses",
-    "start:houses:topocentric": "NODE_OPTIONS=--use-system-ca node src/index.js houses topocentric",
-    "docker:up": "docker compose up -d --build",
-    "docker:mongo": "docker compose -f docker-compose.dev.yml up -d",
-    "docker:mongo:down": "docker compose -f docker-compose.dev.yml down",
-    "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs -f",
-    "docker:run": "docker compose run --rm app node src/index.js"
+    "start:cli": "node src/index.js",
+    "start:topocentric": "node src/index.js topocentric",
+    "start:houses": "node src/index.js houses",
+    "start:houses:topocentric": "node src/index.js houses topocentric",
+    "docker:up": "docker-compose up -d --build",
+    "docker:mongo": "docker-compose -f docker-compose.dev.yml up -d",
+    "docker:mongo:down": "docker-compose -f docker-compose.dev.yml down",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:run": "docker-compose run --rm app node src/index.js",
+    "backfill:chart-display": "node scripts/backfill-planets-display.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -32,7 +33,7 @@
     "openai": "^4.77.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "undici": "^8.5.0",
+    "react-markdown": "^10.1.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {

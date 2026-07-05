@@ -4,13 +4,14 @@ import { createSessionToken, sessionCookieOptions } from "@/lib/auth/session";
 import { verifyPassword } from "@/lib/auth/password";
 import { connectDb } from "@/lib/db/connect";
 import { User } from "@/lib/db/models/User";
+import { withRouteLog } from "@/lib/utils/with-route-log";
 
 const schema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 });
 
-export async function POST(request: Request) {
+export const POST = withRouteLog("auth.login.POST", async (request) => {
   try {
     const body = schema.parse(await request.json());
     await connectDb();
@@ -35,4 +36,4 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : "Ошибка входа";
     return NextResponse.json({ error: message }, { status: 400 });
   }
-}
+});

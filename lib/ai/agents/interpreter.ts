@@ -1,29 +1,33 @@
+import { loadChartInterpretationPrompt } from "@/lib/ai/prompts/load-chart-interpretation-prompt";
 import { getAiProvider } from "@/lib/ai/providers";
-import { compressChartContext } from "@/lib/astrology/chart-format";
+import {
+  type HouseDisplayRow,
+  type HousePlanetsDisplayRow,
+  type PlanetDisplayRow,
+  buildChartDisplay,
+  buildHousesPlanetsDisplay,
+  formatChartContextForAi,
+} from "@/lib/astrology/chart-format";
 import { tracedChat } from "@/lib/observability/langfuse";
 
-export { compressChartContext };
+const PROMPT_VERSION = "v1";
 
-// Генерирует короткое описание натальной карты на русском
+// Генерирует описание натальной карты по сохранённым таблицам планет и домов
 export async function interpretChart(
-  planets: unknown,
-  houses: unknown
+  planetsDisplay: PlanetDisplayRow[],
+  housesDisplay: HouseDisplayRow[],
+  housesPlanetsDisplay: HousePlanetsDisplayRow[]
 ): Promise<{ short: string; highlights: string[]; agentTrace: Record<string, string> }> {
   const provider = getAiProvider();
-  const ctx = compressChartContext(planets, houses);
+  const chartContext = formatChartContextForAi(
+    planetsDisplay,
+    housesDisplay,
+    housesPlanetsDisplay
+  );
+  const systemPrompt = loadChartInterpretationPrompt();
+  const userPrompt = `Данные натальной карты:
 
-  const systemPrompt = `Ты астролог. Напиши краткое описание натальной карты на русском.
-150–300 слов. Без медицинских и фаталистических предсказаний.
-Структура: общий тон → сильные стороны → зоны внимания.`;
-
-  const userPrompt = `Планеты:
-${ctx.planetLines}
-
-ASC: ${ctx.asc ?? "?"}
-MC: ${ctx.mc ?? "?"}
-
-Дома:
-${ctx.houseLines}`;
+${chartContext}`;
 
   const { output, trace } = await tracedChat(
     provider,
@@ -31,31 +35,95 @@ ${ctx.houseLines}`;
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ],
-    { name: "interpreter", input: ctx }
+    {
+      name: "interpreter",
+      input: {
+        planetsDisplay,
+        housesDisplay,
+        housesPlanetsDisplay,
+        promptVersion: PROMPT_VERSION,
+      },
+    }
   );
 
   const highlights = output
     .split("\n")
-    .map((l) => l.replace(/^[-•*]\s*/, "").trim())
-    .filter((l) => l.length > 20)
+    .map((l) => l.replace(/^[-•*#]+\s*/, "").trim())
+    .filter((l) => l.length > 20 && !l.startsWith("["))
     .slice(0, 4);
 
   return {
     short: output.trim(),
     highlights,
-    agentTrace: trace,
+    agentTrace: { ...trace, promptVersion: PROMPT_VERSION },
   };
 }
 
 type ChartKnowledge = {
-  planets: unknown;
-  houses: unknown;
+  planetsDisplay?: PlanetDisplayRow[];
+  housesDisplay?: HouseDisplayRow[];
+  housesPlanetsDisplay?: HousePlanetsDisplayRow[];
+  planets?: unknown;
+  houses?: unknown;
   interpretation?: string;
   apiPayload?: unknown;
   birthInput?: unknown;
 };
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
+
+// Возвращает сохранённые таблицы или собирает их из сырых данных API
+function resolveChartDisplay(chart: ChartKnowledge) {
+  if (chart.planets && chart.houses) {
+    const built = buildChartDisplay(chart.planets, chart.houses);
+
+    if (
+      chart.planetsDisplay &&
+      chart.planetsDisplay.length > 0 &&
+      chart.housesDisplay &&
+      chart.housesDisplay.length > 0
+    ) {
+      return {
+        planetsDisplay: chart.planetsDisplay,
+        housesDisplay: chart.housesDisplay,
+        housesPlanetsDisplay:
+          chart.housesPlanetsDisplay && chart.housesPlanetsDisplay.length > 0
+            ? chart.housesPlanetsDisplay
+            : buildHousesPlanetsDisplay(
+                chart.planetsDisplay,
+                chart.housesDisplay
+              ),
+      };
+    }
+
+    return built;
+  }
+
+  if (
+    chart.planetsDisplay &&
+    chart.planetsDisplay.length > 0 &&
+    chart.housesDisplay &&
+    chart.housesDisplay.length > 0
+  ) {
+    return {
+      planetsDisplay: chart.planetsDisplay,
+      housesDisplay: chart.housesDisplay,
+      housesPlanetsDisplay:
+        chart.housesPlanetsDisplay && chart.housesPlanetsDisplay.length > 0
+          ? chart.housesPlanetsDisplay
+          : buildHousesPlanetsDisplay(
+              chart.planetsDisplay,
+              chart.housesDisplay
+            ),
+    };
+  }
+
+  return {
+    planetsDisplay: [],
+    housesDisplay: [],
+    housesPlanetsDisplay: [],
+  };
+}
 
 // Отвечает на вопрос по сохранённым данным карты без повторного вызова Astrology API
 export async function askAboutChart(
@@ -64,30 +132,28 @@ export async function askAboutChart(
   history: ChatMessage[] = []
 ): Promise<string> {
   const provider = getAiProvider();
-  const ctx = compressChartContext(chart.planets, chart.houses);
+  const { planetsDisplay, housesDisplay, housesPlanetsDisplay } =
+    resolveChartDisplay(chart);
+  const chartContext = formatChartContextForAi(
+    planetsDisplay,
+    housesDisplay,
+    housesPlanetsDisplay
+  );
 
   const systemPrompt = `Ты астролог-консультант. Отвечай на русском, опираясь только на данные натальной карты ниже.
-Не вызывай внешние API и не выдумывай положения планет.
+Не вызывай внешние API и не выдумывай положения планет, знаки, дома или аспекты, которых нет в данных.
 Без медицинских и фаталистических предсказаний. Кратко и по делу.`;
 
-  const chartContext = `Данные рождения: ${JSON.stringify(chart.birthInput ?? {})}
-API payload: ${JSON.stringify(chart.apiPayload ?? {})}
+  const userContext = `Данные рождения: ${JSON.stringify(chart.birthInput ?? {})}
 
-Планеты:
-${ctx.planetLines}
-
-ASC: ${ctx.asc ?? "?"}
-MC: ${ctx.mc ?? "?"}
-
-Дома:
-${ctx.houseLines}
+${chartContext}
 
 Интерпретация:
 ${chart.interpretation ?? "—"}`;
 
   const messages: { role: string; content: string }[] = [
     { role: "system", content: systemPrompt },
-    { role: "user", content: chartContext },
+    { role: "user", content: userContext },
   ];
 
   for (const msg of history.slice(-6)) {

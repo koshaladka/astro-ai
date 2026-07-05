@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth/session";
 import { getChartById } from "@/lib/services/chart-pipeline";
+import { withRouteLog } from "@/lib/utils/with-route-log";
 
-type Params = { params: Promise<{ id: string }> };
-
-export async function GET(_request: Request, { params }: Params) {
+export const GET = withRouteLog("charts.[id].status.GET", async (_request, context) => {
   const session = await getSessionUser();
   if (!session) {
     return NextResponse.json({ error: "Требуется авторизация" }, { status: 401 });
   }
 
-  const { id } = await params;
+  const { id } = await context!.params!;
   const chart = await getChartById(id, session.userId);
 
   if (!chart) {
@@ -23,4 +22,4 @@ export async function GET(_request: Request, { params }: Params) {
     error: chart.error,
     updatedAt: chart.updatedAt,
   });
-}
+});

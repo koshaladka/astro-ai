@@ -17,6 +17,43 @@ const chartMessageSchema = new Schema(
   { _id: false }
 );
 
+const planetDisplaySchema = new Schema(
+  {
+    name: { type: String, required: true },
+    sign: { type: String, required: true },
+    degree: { type: Number, required: true },
+    house: Number,
+    isRetro: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
+
+const houseDisplaySchema = new Schema(
+  {
+    house: { type: Number, required: true },
+    sign: { type: String, required: true },
+    degree: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
+const housePlanetsDisplaySchema = new Schema(
+  {
+    house: { type: Number, required: true },
+    title: { type: String, required: true },
+    sign: { type: String, required: true },
+    planets: [
+      {
+        name: { type: String, required: true },
+        sign: { type: String, required: true },
+        degree: { type: Number, required: true },
+        isRetro: { type: Boolean, default: false },
+      },
+    ],
+  },
+  { _id: false }
+);
+
 const chartResultSchema = new Schema(
   {
     clientId: { type: Schema.Types.ObjectId, ref: "Client", required: true },
@@ -28,6 +65,9 @@ const chartResultSchema = new Schema(
     },
     planets: { type: Schema.Types.Mixed },
     houses: { type: Schema.Types.Mixed },
+    planetsDisplay: [planetDisplaySchema],
+    housesDisplay: [houseDisplaySchema],
+    housesPlanetsDisplay: [housePlanetsDisplaySchema],
     raw: { type: Schema.Types.Mixed },
     interpretation: interpretationSchema,
     messages: [chartMessageSchema],

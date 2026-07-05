@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { searchPlaces } from "@/lib/utils/places";
+import { withRouteLog } from "@/lib/utils/with-route-log";
 
-export async function GET(request: Request) {
+export const GET = withRouteLog("places.search.GET", async (request) => {
   try {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q") ?? "";
@@ -10,4 +11,4 @@ export async function GET(request: Request) {
   } catch {
     return NextResponse.json({ places: [] });
   }
-}
+});

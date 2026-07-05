@@ -1,29 +1,14 @@
-import { findPlanetHouse } from "@/lib/astrology/chart-format";
-
-export type PlanetRow = {
-  planet?: { ru?: string; en?: string };
-  zodiac_sign?: { name?: { ru?: string } };
-  isRetro?: string;
-  fullDegree?: number;
-  normDegree?: number;
-};
-
-export type HouseRow = {
-  House?: number;
-  degree?: number;
-  normDegree?: number;
-  zodiac_sign?: { name?: { ru?: string } };
-};
+import type { HouseDisplayRow, PlanetDisplayRow } from "@/lib/astrology/chart-format";
 
 type ChartTablesProps = {
-  planets?: { output?: PlanetRow[] };
-  houses?: { output?: { Houses?: HouseRow[] } };
+  planetsDisplay?: PlanetDisplayRow[];
+  housesDisplay?: HouseDisplayRow[];
 };
 
 // Показывает таблицы планет и домов натальной карты
-export function ChartTables({ planets, houses }: ChartTablesProps) {
-  const planetRows = planets?.output ?? [];
-  const houseRows = houses?.output?.Houses ?? [];
+export function ChartTables({ planetsDisplay, housesDisplay }: ChartTablesProps) {
+  const planetRows = planetsDisplay ?? [];
+  const houseRows = housesDisplay ?? [];
 
   if (planetRows.length === 0 && houseRows.length === 0) return null;
 
@@ -45,16 +30,12 @@ export function ChartTables({ planets, houses }: ChartTablesProps) {
               {planetRows.map((p, i) => (
                 <tr key={i}>
                   <td>
-                    {p.planet?.ru || p.planet?.en}
-                    {p.isRetro?.toLowerCase() === "true" ? " ℞" : ""}
+                    {p.name}
+                    {p.isRetro ? " ℞" : ""}
                   </td>
-                  <td>{p.zodiac_sign?.name?.ru}</td>
-                  <td>{p.normDegree?.toFixed(1)}°</td>
-                  <td>
-                    {p.fullDegree != null
-                      ? findPlanetHouse(p.fullDegree, houseRows) ?? "—"
-                      : "—"}
-                  </td>
+                  <td>{p.sign}</td>
+                  <td>{p.degree.toFixed(1)}°</td>
+                  <td>{p.house ?? "—"}</td>
                 </tr>
               ))}
             </tbody>
@@ -76,9 +57,9 @@ export function ChartTables({ planets, houses }: ChartTablesProps) {
             <tbody>
               {houseRows.map((h, i) => (
                 <tr key={i}>
-                  <td>{h.House}</td>
-                  <td>{h.zodiac_sign?.name?.ru}</td>
-                  <td>{h.normDegree?.toFixed(1)}°</td>
+                  <td>{h.house}</td>
+                  <td>{h.sign}</td>
+                  <td>{h.degree.toFixed(1)}°</td>
                 </tr>
               ))}
             </tbody>

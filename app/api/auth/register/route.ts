@@ -4,6 +4,7 @@ import { createSessionToken, sessionCookieOptions } from "@/lib/auth/session";
 import { hashPassword } from "@/lib/auth/password";
 import { connectDb } from "@/lib/db/connect";
 import { User } from "@/lib/db/models/User";
+import { withRouteLog } from "@/lib/utils/with-route-log";
 
 const schema = z.object({
   email: z.string().email("Некорректный email"),
@@ -11,7 +12,7 @@ const schema = z.object({
   name: z.string().min(1).optional(),
 });
 
-export async function POST(request: Request) {
+export const POST = withRouteLog("auth.register.POST", async (request) => {
   try {
     const body = schema.parse(await request.json());
     await connectDb();
@@ -43,4 +44,4 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : "Ошибка регистрации";
     return NextResponse.json({ error: message }, { status: 400 });
   }
-}
+});

@@ -117,6 +117,8 @@ async function fetchRemotePlaces(
 }
 
 // Запрашивает подсказки у OpenStreetMap Nominatim
+import { loggedFetch } from "@/lib/utils/logged-fetch";
+
 async function fetchNominatim(
   query: string,
   externalSignal?: AbortSignal
@@ -135,11 +137,15 @@ async function fetchNominatim(
   externalSignal?.addEventListener("abort", onExternalAbort);
 
   try {
-    const res = await fetch(url.toString(), {
-      headers: { "User-Agent": "astro-app/1.0 (natal-chart)" },
-      next: { revalidate: 86400 },
-      signal: controller.signal,
-    });
+    const res = await loggedFetch(
+      url.toString(),
+      {
+        headers: { "User-Agent": "astro-app/1.0 (natal-chart)" },
+        next: { revalidate: 86400 },
+        signal: controller.signal,
+      },
+      "places.nominatim"
+    );
 
     if (!res.ok) return [];
 
@@ -183,7 +189,7 @@ async function fetchDaData(
   externalSignal?.addEventListener("abort", onExternalAbort);
 
   try {
-    const res = await fetch(
+    const res = await loggedFetch(
       "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address",
       {
         method: "POST",
@@ -201,7 +207,8 @@ async function fetchDaData(
           locations: [{ country: "Россия" }],
         }),
         signal: controller.signal,
-      }
+      },
+      "places.dadata"
     );
 
     if (!res.ok) return [];

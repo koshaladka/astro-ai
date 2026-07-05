@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/auth/session";
 import { connectDb } from "@/lib/db/connect";
 import { User } from "@/lib/db/models/User";
 import { getUserCharts } from "@/lib/services/chart-pipeline";
+import { withRouteLog } from "@/lib/utils/with-route-log";
 
 const patchSchema = z.object({
   name: z.string().min(1).optional(),
@@ -19,7 +20,7 @@ const patchSchema = z.object({
 });
 
 // Возвращает профиль текущего пользователя и список его карт
-export async function GET() {
+export const GET = withRouteLog("profile.GET", async () => {
   const session = await getSessionUser();
   if (!session) {
     return NextResponse.json({ error: "Требуется авторизация" }, { status: 401 });
@@ -42,10 +43,10 @@ export async function GET() {
     },
     charts,
   });
-}
+});
 
 // Обновляет имя и предпочтения рождения пользователя
-export async function PATCH(request: Request) {
+export const PATCH = withRouteLog("profile.PATCH", async (request) => {
   const session = await getSessionUser();
   if (!session) {
     return NextResponse.json({ error: "Требуется авторизация" }, { status: 401 });
@@ -78,4 +79,4 @@ export async function PATCH(request: Request) {
     const message = error instanceof Error ? error.message : "Ошибка обновления профиля";
     return NextResponse.json({ error: message }, { status: 400 });
   }
-}
+});

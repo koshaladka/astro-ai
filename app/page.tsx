@@ -1,8 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CityPicker, type SelectedPlace } from "@/components/CityPicker";
+
+type ChartItem = {
+  chartId: string;
+  status: string;
+  summaryPreview?: string;
+  birthInput?: { date?: string; time?: string; placeName?: string };
+};
 
 export default function HomePage() {
   const router = useRouter();
@@ -12,11 +20,17 @@ export default function HomePage() {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [place, setPlace] = useState<SelectedPlace | null>(null);
+  const [charts, setCharts] = useState<ChartItem[]>([]);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
     fetch("/api/profile")
       .then((r) => r.json())
       .then((d) => {
+        if (d.profile) {
+          setLoggedIn(true);
+          setCharts(d.charts ?? []);
+        }
         const prefs = d.profile?.birthPreferences;
         if (!prefs) return;
         if (prefs.date) setDate(prefs.date);
@@ -104,7 +118,7 @@ export default function HomePage() {
               onChange={(e) => setTime(e.target.value)}
               disabled={prefLoading}
             />
-            <p className="hint">Местное время, как в документах</p>
+            <p className="hint">Например: 11:30</p>
           </div>
         </div>
 
@@ -116,6 +130,26 @@ export default function HomePage() {
 
         {error && <p className="error">{error}</p>}
       </form>
+
+      {loggedIn && (
+        <section>
+          <h2 className="section-title">Мои карты</h2>
+          {charts.length === 0 ? (
+            <p className="hint">Карт пока нет — постройте первую выше.</p>
+          ) : (
+            <ul className="chart-list">
+              {charts.map((c) => (
+                <li key={c.chartId} className="card chart-list-item">
+                  <Link href={`/chart/${c.chartId}`}>
+                    {c.birthInput?.date} · {c.birthInput?.time} · {c.birthInput?.placeName}
+                  </Link>
+                  {c.summaryPreview && <p className="hint">{c.summaryPreview}…</p>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
     </main>
   );
 }

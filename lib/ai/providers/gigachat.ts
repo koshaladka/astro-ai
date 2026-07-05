@@ -1,5 +1,6 @@
 import GigaChat from "gigachat";
 import { Agent } from "node:https";
+import { logApiRequest, logApiResponse } from "@/lib/utils/api-logger";
 import type { AiProvider } from "./types";
 
 // Создаёт клиент GigaChat через официальный SDK
@@ -18,13 +19,26 @@ export function createGigaChatProvider(): AiProvider {
     name: "gigachat",
     model,
     async chat(messages) {
-      const response = await client.chat({
-        messages: messages.map((m) => ({
-          role: m.role as "system" | "user" | "assistant",
-          content: m.content,
-        })),
+      const payload = messages.map((m) => ({
+        role: m.role as "system" | "user" | "assistant",
+        content: m.content,
+      }));
+
+      logApiRequest("gigachat.chat", {
+        method: "POST",
+        url: "gigachat://chat",
+        body: { model, messages: payload },
       });
-      return response.choices?.[0]?.message?.content ?? "";
+
+      const response = await client.chat({ messages: payload });
+      const output = response.choices?.[0]?.message?.content ?? "";
+
+      logApiResponse("gigachat.chat", {
+        status: 200,
+        body: { content: output },
+      });
+
+      return output;
     },
   };
 }

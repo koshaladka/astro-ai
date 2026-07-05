@@ -4,14 +4,20 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ChartTables } from "@/components/ChartTables";
+import { MarkdownContent } from "@/components/MarkdownContent";
+import type { HouseDisplayRow, PlanetDisplayRow } from "@/lib/astrology/chart-format";
+import {
+  buildChartMarkdown,
+  downloadMarkdownFile,
+} from "@/lib/astrology/chart-markdown-export";
 
 type ChartData = {
   chartId: string;
   status: string;
   summary?: string;
   highlights?: string[];
-  planets?: { output?: unknown[] };
-  houses?: { output?: { Houses?: unknown[] } };
+  planetsDisplay?: PlanetDisplayRow[];
+  housesDisplay?: HouseDisplayRow[];
   messages?: Array<{ role: string; content: string; createdAt?: string }>;
   error?: string;
   birthInput?: { date?: string; time?: string; placeName?: string };
@@ -26,6 +32,8 @@ export default function ChartPage() {
   const [question, setQuestion] = useState("");
   const [asking, setAsking] = useState(false);
   const [askError, setAskError] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -89,6 +97,45 @@ export default function ChartPage() {
     }
   }
 
+  function downloadDescription() {
+    if (!chart?.summary) return;
+
+    const markdown = buildChartMarkdown({
+      summary: chart.summary,
+      highlights: chart.highlights,
+      birthInput: chart.birthInput,
+      planetsDisplay: chart.planetsDisplay,
+      housesDisplay: chart.housesDisplay,
+    });
+
+    downloadMarkdownFile(markdown, `natal-chart-${id}.md`);
+  }
+
+  async function refreshDescription() {
+    setRefreshing(true);
+    setRefreshError("");
+
+    try {
+      const res = await fetch(`/api/charts/${id}/reinterpret`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Ошибка");
+
+      setChart((prev) =>
+        prev
+          ? {
+              ...prev,
+              summary: data.summary,
+              highlights: data.highlights,
+            }
+          : prev
+      );
+    } catch (err) {
+      setRefreshError(err instanceof Error ? err.message : "Ошибка");
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   if (loading) {
     return (
       <main>
@@ -109,8 +156,8 @@ export default function ChartPage() {
   }
 
   const hasTables =
-    (chart.planets?.output?.length ?? 0) > 0 ||
-    (chart.houses?.output?.Houses?.length ?? 0) > 0;
+    (chart.planetsDisplay?.length ?? 0) > 0 ||
+    (chart.housesDisplay?.length ?? 0) > 0;
 
   return (
     <main>
@@ -128,10 +175,38 @@ export default function ChartPage() {
 
       {chart.error && <p className="error">{chart.error}</p>}
 
-      {chart.summary && (
+      {hasTables && (
         <section className="card">
-          <h2 className="section-title">Описание</h2>
-          <div className="summary">{chart.summary}</div>
+          <ChartTables
+            planetsDisplay={chart.planetsDisplay}
+            housesDisplay={chart.housesDisplay}
+          />
+        </section>
+      )}
+
+      {chart.status === "complete" && (
+        <section className="card">
+          <div className="section-header">
+            <h2 className="section-title">Описание</h2>
+            <div className="section-header-actions">
+              <button
+                type="button"
+                onClick={downloadDescription}
+                disabled={!chart.summary}
+              >
+                Скачать
+              </button>
+              <button type="button" onClick={refreshDescription} disabled={refreshing}>
+                {refreshing ? "Обновляем…" : "Обновить описание"}
+              </button>
+            </div>
+          </div>
+          {refreshError && <p className="error">{refreshError}</p>}
+          {chart.summary ? (
+            <MarkdownContent className="summary">{chart.summary}</MarkdownContent>
+          ) : (
+            <p className="hint">Описание пока не сгенерировано.</p>
+          )}
           {chart.highlights && chart.highlights.length > 0 && (
             <ul className="highlights">
               {chart.highlights.map((h, i) => (
@@ -139,12 +214,6 @@ export default function ChartPage() {
               ))}
             </ul>
           )}
-        </section>
-      )}
-
-      {hasTables && (
-        <section className="card">
-          <ChartTables planets={chart.planets} houses={chart.houses} />
         </section>
       )}
 

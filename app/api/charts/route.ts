@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth/session";
 import { birthInputSchema } from "@/lib/schemas/birth-payload.zod";
 import { getUserCharts, runChartPipeline } from "@/lib/services/chart-pipeline";
+import { withRouteLog } from "@/lib/utils/with-route-log";
 
 // Возвращает список карт текущего пользователя
-export async function GET() {
+export const GET = withRouteLog("charts.GET", async () => {
   const session = await getSessionUser();
   if (!session) {
     return NextResponse.json({ error: "Требуется авторизация" }, { status: 401 });
@@ -12,9 +13,9 @@ export async function GET() {
 
   const charts = await getUserCharts(session.userId);
   return NextResponse.json({ charts });
-}
+});
 
-export async function POST(request: Request) {
+export const POST = withRouteLog("charts.POST", async (request) => {
   const session = await getSessionUser();
   if (!session) {
     return NextResponse.json({ error: "Требуется авторизация" }, { status: 401 });
@@ -41,4 +42,4 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : "Ошибка создания карты";
     return NextResponse.json({ error: message }, { status: 400 });
   }
-}
+});

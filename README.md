@@ -3,6 +3,7 @@
 Веб-приложение для построения натальной карты: форма → AI → Free Astrology API → MongoDB → интерпретация.
 
 ## Быстрый старт
+node 22
 
 ```bash
 npm install
@@ -33,6 +34,19 @@ npm run dev
 - **Профиль** (`/profile`) — имя, email, опциональные данные рождения, список карт
 - **ChartResult** — planets, houses, `raw` (полный снимок ответов API + payload), интерпретация, история Q&A
 - **Follow-up вопросы** — на странице карты; AI отвечает только из сохранённых данных в БД, без повторного вызова Astrology API
+
+## Астрологические данные
+
+Положение планет и домов берём из **[Free Astrology API](https://freeastrologyapi.com)** (Western Astrology):
+https://freeastrologyapi.com/api-reference/western-astrology/planets докуменатция по АПИ
+
+| Эндпоинт | URL |
+|----------|-----|
+| Планеты | `POST https://json.freeastrologyapi.com/western/planets` |
+| Дома | `POST https://json.freeastrologyapi.com/western/houses` |
+
+Ключ: `ASTROLOGY_API_KEY` (регистрация на [freeastrologyapi.com](https://freeastrologyapi.com)).  
+Реализация: `lib/astrology/client.ts`. Без ключа или при `AI_PROVIDER=mock` — ответы из `mock/`.
 
 ## Выбор города
 
@@ -83,6 +97,16 @@ npm run dev
 
 В `.env`: `MONGODB_URI=mongodb://astro:astrosecret@localhost:27017/astro?authSource=admin`
 
+**Просмотр БД в браузере (mongo-express):**
+
+| | |
+|---|---|
+| URL | http://localhost:8081 |
+| Логин | `admin` |
+| Пароль | `admin` |
+
+Это логин **веб-UI mongo-express**, не MongoDB. Креды Mongo — в `MONGODB_URI` / `MONGO_ROOT_*` в `.env`.
+
 Полный стек (app + Langfuse) — только при доступе к registry:
 
 ```bash
@@ -94,6 +118,7 @@ npm run docker:up
 | App | http://localhost:4000 |
 | Langfuse | http://localhost:3100 |
 | MongoDB | localhost:27017 |
+| mongo-express (dev) | http://localhost:8081 |
 
 ## API
 
@@ -118,3 +143,17 @@ docs/          — референсы AI-провайдеров
 ```
 
 Полная спека: `.cursor/plans/astro-app-spec.md`
+
+
+Доделать -
+выложить на сервер
+
+ про базу - зачем разнные коллекции 
+
+транзиты через запрос даты и наложениие
+
+общение в чате уточнить что уходит карта и какой промт 
+
+попробовать польза аи - дргуая модель 
+
+попробоавть в чатах на моделях промты - ключевые слова в гига и в поьзе 
