@@ -1,3 +1,5 @@
+import type { EclipseType } from "./catalog";
+
 export const BODY_NAMES = {
   Sun: "Солнце", Moon: "Луна", Mercury: "Меркурий", Venus: "Венера",
   Mars: "Марс", Jupiter: "Юпитер", Saturn: "Сатурн", Uranus: "Уран",
@@ -19,7 +21,21 @@ export type Aspect = {
 export type AspectType = typeof ASPECTS[number]["id"];
 // Остальные формулы сохранены; возвращаем их явным изменением этой настройки.
 export const ACTIVE_ASPECT_TYPES: readonly AspectType[] = ["conjunction"];
-export const CALCULATION_VERSION = "geocentric-tropical-mean-node-conjunction-orb5-v2";
+export const CALCULATION_VERSION = "geocentric-tropical-eclipse-luminary-five-aspects-orb5-v3";
+export const ECLIPSE_ASPECT_TYPES: readonly AspectType[] = ASPECTS.map(a => a.id);
+export function eclipseLuminary(type: EclipseType): "Sun" | "Moon" {
+  if (type.startsWith("solar-")) return "Sun";
+  if (type.startsWith("lunar-")) return "Moon";
+  throw new Error("Неизвестный тип затмения");
+}
+
+// Правило затмений отдельно от общего калькулятора: источник — только Солнце/Луна.
+export function calculateEclipseAspects(natal: Position[], transit: Position[], type: EclipseType): Aspect[] {
+  const sourceId = eclipseLuminary(type);
+  const source = transit.find(p => p.id === sourceId);
+  if (!source) throw new Error(`В карте затмения отсутствует ${BODY_NAMES[sourceId]}`);
+  return calculateAspects(natal, [source], ECLIPSE_ASPECT_TYPES);
+}
 export function activeAspects(aspects: Aspect[]): Aspect[] {
   return aspects.filter(a => ACTIVE_ASPECT_TYPES.includes(a.type) && Number.isFinite(a.orb) && a.orb >= 0 && a.orb <= 5);
 }

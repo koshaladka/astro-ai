@@ -402,10 +402,10 @@ export async function askChartQuestion(chartId: string, userId: string, question
 
   await ChartResult.findByIdAndUpdate(chartId, {
     $push: {
-      messages: [
+      messages: { $each: [
         { role: "user", content: question, createdAt: new Date() },
         { role: "assistant", content: answer, createdAt: new Date() },
-      ],
+      ] },
     },
   });
 

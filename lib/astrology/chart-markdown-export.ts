@@ -33,12 +33,6 @@ export function buildChartMarkdown(input: ChartMarkdownInput): string {
 
   parts.push("## Описание", "", input.summary);
 
-  if (input.highlights?.length) {
-    parts.push("", "## Ключевые моменты", "");
-    for (const h of input.highlights) {
-      parts.push(`- ${h}`);
-    }
-  }
 
   return parts.join("\n");
 }

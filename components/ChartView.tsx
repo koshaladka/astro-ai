@@ -210,9 +210,9 @@ export function ChartView({
         <>
           <div className="section-header">
             <h1>{chart.isPrimary ? "Основная карта" : "Натальная карта"}</h1>
-            <button type="button" onClick={removeChart} disabled={deleting}>
+            {!chart.isPrimary && <button type="button" onClick={removeChart} disabled={deleting}>
               {deleting ? "Удаляем…" : "Удалить"}
-            </button>
+            </button>}
           </div>
           {chart.birthInput && (
             <p className="subtitle">
@@ -226,9 +226,6 @@ export function ChartView({
       {!showTitle && (
         <div className="section-header">
           <h2 className="section-title">Основная карта</h2>
-          <button type="button" onClick={removeChart} disabled={deleting}>
-            {deleting ? "Удаляем…" : "Удалить"}
-          </button>
         </div>
       )}
 
@@ -265,13 +262,6 @@ export function ChartView({
             <MarkdownContent className="summary">{chart.summary}</MarkdownContent>
           ) : (
             <p className="hint">Описание пока не сгенерировано.</p>
-          )}
-          {chart.highlights && chart.highlights.length > 0 && (
-            <ul className="highlights">
-              {chart.highlights.map((h, i) => (
-                <li key={i}>{h}</li>
-              ))}
-            </ul>
           )}
         </section>
       )}

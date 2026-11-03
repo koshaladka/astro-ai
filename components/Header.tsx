@@ -65,7 +65,7 @@ export function Header() {
                     role="menuitem"
                     onClick={() => setMenuOpen(false)}
                   >
-                    Мой профиль
+                    Моя карта
                   </Link>
                 </li>
                 <li role="none">
@@ -79,7 +79,7 @@ export function Header() {
                   </Link>
                 </li>
                 <li role="none">
-                  <Link href="/overlays" className="user-menu-item" role="menuitem" onClick={() => setMenuOpen(false)}>Наложения</Link>
+                  <Link href="/overlays" className="user-menu-item" role="menuitem" onClick={() => setMenuOpen(false)}>Затмения</Link>
                 </li>
                 <li role="none">
                   <button

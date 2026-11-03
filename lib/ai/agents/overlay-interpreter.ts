@@ -10,7 +10,7 @@ export async function interpretOverlayData(overlay: OverlayRecord, question?: st
     const result = await Promise.race([
       tracedChat(getAiProvider(), buildOverlayMessages(overlay, question, aspectId), {
         name: question === undefined ? "overlay-interpretation" : "overlay-qa",
-        input: { calculationVersion: overlay.calculationVersion, aspectCount: overlay.aspects.length, aspectId },
+        input: { calculationVersion: overlay.aiCalculationVersion ?? overlay.calculationVersion, aspectCount: overlay.aspects.length, aspectId },
       }),
       new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new OverlayError("ИИ не ответил вовремя. Повторите запрос.", 504)), 120_000); }),
     ]);
