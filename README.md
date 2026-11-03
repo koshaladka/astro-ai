@@ -2,6 +2,8 @@
 
 Веб-приложение для построения натальной карты: форма → AI → Free Astrology API → MongoDB → интерпретация.
 
+Документы: [`docs/`](./docs/) (деплой/HTTPS — [`docs/deployment.md`](./docs/deployment.md)). Спеки: [`.cursor/plans/`](./.cursor/plans/). Для агентов: [`AGENTS.md`](./AGENTS.md).
+
 ## Быстрый старт
 node 22
 
