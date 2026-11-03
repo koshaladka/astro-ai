@@ -16,7 +16,13 @@ export type Aspect = {
   id: string; natal: Position; eclipse: Position;
   type: typeof ASPECTS[number]["id"]; name: string; angle: number; distance: number; orb: number;
 };
-export const CALCULATION_VERSION = "geocentric-tropical-mean-node-five-aspects-orb5-v1";
+export type AspectType = typeof ASPECTS[number]["id"];
+// Остальные формулы сохранены; возвращаем их явным изменением этой настройки.
+export const ACTIVE_ASPECT_TYPES: readonly AspectType[] = ["conjunction"];
+export const CALCULATION_VERSION = "geocentric-tropical-mean-node-conjunction-orb5-v2";
+export function activeAspects(aspects: Aspect[]): Aspect[] {
+  return aspects.filter(a => ACTIVE_ASPECT_TYPES.includes(a.type) && Number.isFinite(a.orb) && a.orb >= 0 && a.orb <= 5);
+}
 
 export function angularDistance(a: number, b: number): number {
   if (![a, b].every(x => Number.isFinite(x) && x >= 0 && x < 360)) {
@@ -51,11 +57,14 @@ export function extractPositions(raw: unknown): Position[] {
   });
 }
 
-export function calculateAspects(natal: Position[], eclipse: Position[]): Aspect[] {
+export function calculateAspects(
+  natal: Position[], eclipse: Position[], enabledTypes: readonly AspectType[] = ACTIVE_ASPECT_TYPES,
+): Aspect[] {
   const result: Aspect[] = [];
   for (const a of natal) for (const b of eclipse) {
     const distance = angularDistance(a.longitude, b.longitude);
     for (const aspect of ASPECTS) {
+      if (!enabledTypes.includes(aspect.id)) continue;
       const orb = Math.abs(distance - aspect.angle);
       if (orb <= 5) result.push({ id: `${a.id}:${b.id}:${aspect.id}`, natal: a, eclipse: b,
         type: aspect.id, name: aspect.name, angle: aspect.angle, distance, orb });

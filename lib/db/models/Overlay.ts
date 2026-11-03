@@ -7,6 +7,10 @@ export interface OverlayRecord {
   natal: NatalSnapshot; eclipse: EclipseSnapshot; aspects: Aspect[];
   interpretation: string; interpretationStatus: OverlayView["interpretationStatus"];
   interpretationError?: string; messages: OverlayMessage[];
+  aiCalculationVersion?: string;
+  previousContext?: {
+    calculationVersion: string; aspects: Aspect[]; interpretation: string; messages: OverlayMessage[];
+  };
   lockToken?: string; lockUntil?: Date; createdAt: Date; updatedAt: Date;
 }
 const schema = new Schema<OverlayRecord>({
@@ -16,6 +20,8 @@ const schema = new Schema<OverlayRecord>({
   aspects: { type: [aspectSchema], required: true }, interpretation: { type: String, default: "" },
   interpretationStatus: { type: String, enum: ["idle", "running", "complete", "error", "empty"], default: "idle" },
   interpretationError: String, messages: { type: [overlayMessageSchema], default: [] },
+  aiCalculationVersion: String,
+  previousContext: Schema.Types.Mixed,
   lockToken: String, lockUntil: Date,
 }, { timestamps: true });
 schema.index({ userId: 1, natalChartId: 1, eclipseId: 1, calculationVersion: 1 }, { unique: true });
