@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
+import { DownloadPdfButton } from "@/components/DownloadPdfButton";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { CollapsibleAnswer } from "@/components/CollapsibleAnswer";
 import { ECLIPSE_TYPES } from "@/lib/overlays/catalog";
@@ -79,6 +80,11 @@ export default function OverlayPage({ params }: { params: { id: string } }) {
       <h2 className="section-title">Расшифровка</h2>
       {!overlay.interpretation && overlay.aspects.length > 0 && <p className="hint">Получите расшифровку аспектов затмения. Прежние трактовки другого набора аспектов не используются.</p>}
       {overlay.interpretation && <MarkdownContent>{overlay.interpretation}</MarkdownContent>}
+      {overlay.interpretation && <DownloadPdfButton
+        className="btn-secondary"
+        markdown={`# ${ECLIPSE_TYPES[overlay.eclipse.type]} затмение\n\n${utcLabel(overlay.eclipse.maximumAt)}\n\n${overlay.natal.label}\n\n${overlay.interpretation}`}
+        filename={`eclipse-${overlay.eclipse.maximumAt.slice(0, 10)}-${overlay.id}.pdf`}
+      />}
       {(overlay.busy || busy) && <p className="hint" role="status">ИИ обрабатывает запрос…</p>}
       {overlay.interpretationError && <p className="error">{overlay.interpretationError}</p>}
       {overlay.aspects.length > 0 && <div className="overlay-interpretation-actions">
