@@ -1,153 +1,287 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { BirthChartForm } from "@/components/BirthChartForm";
+import { ChartView } from "@/components/ChartView";
 import { CityPicker, type SelectedPlace } from "@/components/CityPicker";
+
+type BirthPreferences = {
+  date?: string;
+  time?: string;
+  placeName?: string;
+  latitude?: number;
+  longitude?: number;
+};
+
+type Profile = {
+  email: string;
+  name?: string;
+  birthPreferences?: BirthPreferences;
+};
 
 type ChartItem = {
   chartId: string;
   status: string;
-  summaryPreview?: string;
+  isPrimary?: boolean;
   birthInput?: { date?: string; time?: string; placeName?: string };
 };
 
-export default function HomePage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [prefLoading, setPrefLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [place, setPlace] = useState<SelectedPlace | null>(null);
-  const [charts, setCharts] = useState<ChartItem[]>([]);
-  const [loggedIn, setLoggedIn] = useState(false);
+function birthMatches(
+  prefs?: BirthPreferences | null,
+  birth?: ChartItem["birthInput"] | null
+) {
+  if (!prefs?.date || !prefs?.time || !prefs?.placeName || !birth) return true;
+  return (
+    prefs.date === birth.date &&
+    prefs.time === birth.time &&
+    prefs.placeName === birth.placeName
+  );
+}
 
-  useEffect(() => {
-    fetch("/api/profile")
+export default function HomePage() {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [primary, setPrimary] = useState<ChartItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
+  const [message, setMessage] = useState("");
+  const [name, setName] = useState("");
+  const [prefs, setPrefs] = useState<BirthPreferences>({});
+  const [place, setPlace] = useState<SelectedPlace | null>(null);
+  const [chartKey, setChartKey] = useState(0);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    return fetch("/api/profile")
       .then((r) => r.json())
       .then((d) => {
-        if (d.profile) {
-          setLoggedIn(true);
-          setCharts(d.charts ?? []);
-        }
-        const prefs = d.profile?.birthPreferences;
-        if (!prefs) return;
-        if (prefs.date) setDate(prefs.date);
-        if (prefs.time) setTime(prefs.time);
+        if (d.error) throw new Error(d.error);
+        setProfile(d.profile);
+        setName(d.profile.name ?? "");
+        const birthPrefs = d.profile.birthPreferences ?? {};
+        setPrefs(birthPrefs);
         if (
-          prefs.placeName &&
-          prefs.latitude != null &&
-          prefs.longitude != null
+          birthPrefs.placeName &&
+          birthPrefs.latitude != null &&
+          birthPrefs.longitude != null
         ) {
           setPlace({
-            placeName: prefs.placeName,
-            latitude: prefs.latitude,
-            longitude: prefs.longitude,
-            label: prefs.placeName,
+            placeName: birthPrefs.placeName,
+            latitude: birthPrefs.latitude,
+            longitude: birthPrefs.longitude,
+            label: birthPrefs.placeName,
           });
+        } else {
+          setPlace(null);
         }
+        const charts = (d.charts ?? []) as ChartItem[];
+        setPrimary(charts.find((c) => c.isPrimary) ?? null);
+        setError("");
       })
-      .catch(() => {})
-      .finally(() => setPrefLoading(false));
+      .catch((e) => setError(e instanceof Error ? e.message : "Ошибка"))
+      .finally(() => setLoading(false));
   }, []);
 
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!place) {
-      setError("Выберите город из списка");
-      return;
-    }
+  useEffect(() => {
+    load();
+  }, [load]);
 
-    setLoading(true);
+  async function saveProfile(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setMessage("");
     setError("");
 
-    const form = new FormData(e.currentTarget);
-    const body = {
-      date: String(form.get("date")),
-      time: String(form.get("time")),
-      placeName: place.placeName,
-      latitude: place.latitude,
-      longitude: place.longitude,
+    const birthPreferences = {
+      date: prefs.date,
+      time: prefs.time,
+      placeName: place?.placeName ?? prefs.placeName,
+      latitude: place?.latitude ?? prefs.latitude,
+      longitude: place?.longitude ?? prefs.longitude,
     };
 
     try {
-      const res = await fetch("/api/charts", {
-        method: "POST",
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ name, birthPreferences }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Ошибка запроса");
-      router.push(`/chart/${data.chartId}`);
+      if (!res.ok) throw new Error(data.error || "Ошибка сохранения");
+      setProfile(data.profile);
+      setPrefs(data.profile.birthPreferences ?? {});
+      setEditing(false);
+      setMessage("Сохранено");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка");
-      setLoading(false);
+    } finally {
+      setSaving(false);
     }
   }
 
+  async function recalculate() {
+    setRecalculating(true);
+    setError("");
+    try {
+      const res = await fetch("/api/charts/recalculate-primary", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Ошибка пересчёта");
+      await load();
+      setChartKey((k) => k + 1);
+      setMessage("Основная карта пересчитана");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка");
+    } finally {
+      setRecalculating(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <main>
+        <p className="loading">Загружаем профиль…</p>
+      </main>
+    );
+  }
+
+  if (error && !profile) {
+    return (
+      <main>
+        <p className="error">{error}</p>
+      </main>
+    );
+  }
+
+  const needsRecalc = Boolean(primary && !birthMatches(prefs, primary.birthInput));
+  const birthLabel =
+    prefs.date && prefs.time && prefs.placeName
+      ? `${prefs.date} · ${prefs.time} · ${prefs.placeName}`
+      : "Дата рождения не указана";
+
   return (
     <main>
-      <h1>Натальная карта</h1>
-      <p className="subtitle">
-        Введите дату, время и место рождения — получите краткое описание
-      </p>
+      <div className="section-header">
+        <h1>Мой профиль</h1>
+        <Link href="/charts/new" className="btn-ghost">
+          Добавить карту
+        </Link>
+      </div>
+      <p className="subtitle">{profile?.email}</p>
 
-      <form className="card" onSubmit={onSubmit}>
-        <div className="field-row">
-          <div>
-            <label htmlFor="date">Дата рождения</label>
+      <section className="card">
+        {!editing ? (
+          <>
+            <p>
+              <strong>{profile?.name || "Без имени"}</strong>
+            </p>
+            <p className="hint">{birthLabel}</p>
+            <div className="section-header-actions">
+              <button type="button" onClick={() => setEditing(true)}>
+                Редактировать
+              </button>
+              {needsRecalc && (
+                <button type="button" onClick={recalculate} disabled={recalculating}>
+                  {recalculating ? "Считаем…" : "Пересчитать"}
+                </button>
+              )}
+            </div>
+            {message && <p className="hint">{message}</p>}
+            {error && <p className="error">{error}</p>}
+          </>
+        ) : (
+          <form onSubmit={saveProfile}>
+            <label htmlFor="name">Имя</label>
             <input
-              id="date"
-              name="date"
-              type="date"
-              required
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              disabled={prefLoading}
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Как к вам обращаться"
             />
-          </div>
-          <div>
-            <label htmlFor="time">Время</label>
-            <input
-              id="time"
-              name="time"
-              type="time"
-              required
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              disabled={prefLoading}
+
+            <div className="field-row">
+              <div>
+                <label htmlFor="date">Дата рождения</label>
+                <input
+                  id="date"
+                  type="date"
+                  value={prefs.date ?? ""}
+                  onChange={(e) => setPrefs({ ...prefs, date: e.target.value })}
+                />
+              </div>
+              <div>
+                <label htmlFor="time">Время</label>
+                <input
+                  id="time"
+                  type="time"
+                  value={prefs.time ?? ""}
+                  onChange={(e) => setPrefs({ ...prefs, time: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <CityPicker
+              inputId="place"
+              label="Место рождения"
+              placeholder="Город"
+              value={place}
+              onChange={(selected) => {
+                setPlace(selected);
+                setPrefs((prev) =>
+                  selected
+                    ? {
+                        ...prev,
+                        placeName: selected.placeName,
+                        latitude: selected.latitude,
+                        longitude: selected.longitude,
+                      }
+                    : {
+                        ...prev,
+                        placeName: undefined,
+                        latitude: undefined,
+                        longitude: undefined,
+                      }
+                );
+              }}
             />
-            <p className="hint">Например: 11:30</p>
-          </div>
-        </div>
 
-        <CityPicker value={place} onChange={setPlace} />
+            <div className="section-header-actions">
+              <button type="submit" disabled={saving}>
+                {saving ? "Сохраняем…" : "Сохранить"}
+              </button>
+              <button type="button" onClick={() => setEditing(false)}>
+                Отмена
+              </button>
+            </div>
+            {error && <p className="error">{error}</p>}
+          </form>
+        )}
+      </section>
 
-        <button type="submit" disabled={loading || prefLoading || !place}>
-          {loading ? "Анализируем данные…" : "Построить карту"}
-        </button>
-
-        {error && <p className="error">{error}</p>}
-      </form>
-
-      {loggedIn && (
+      {!primary ? (
         <section>
-          <h2 className="section-title">Мои карты</h2>
-          {charts.length === 0 ? (
-            <p className="hint">Карт пока нет — постройте первую выше.</p>
-          ) : (
-            <ul className="chart-list">
-              {charts.map((c) => (
-                <li key={c.chartId} className="card chart-list-item">
-                  <Link href={`/chart/${c.chartId}`}>
-                    {c.birthInput?.date} · {c.birthInput?.time} · {c.birthInput?.placeName}
-                  </Link>
-                  {c.summaryPreview && <p className="hint">{c.summaryPreview}…</p>}
-                </li>
-              ))}
-            </ul>
-          )}
+          <h2 className="section-title">Построить основную карту</h2>
+          <p className="subtitle">Введите дату, время и место рождения</p>
+          <BirthChartForm
+            asPrimary
+            initial={prefs}
+            onSuccess={() => {
+              load().then(() => setChartKey((k) => k + 1));
+            }}
+          />
+        </section>
+      ) : (
+        <section key={chartKey}>
+          <ChartView
+            chartId={primary.chartId}
+            showTitle={false}
+            onDeleted={() => {
+              setPrimary(null);
+              load();
+            }}
+          />
         </section>
       )}
     </main>

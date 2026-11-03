@@ -108,16 +108,53 @@ function normalizeHousesPlanetsDisplay(
   }));
 }
 
+/** Снимает isPrimary со всех карт пользователя */
+async function clearPrimaryFlags(userId: string) {
+  const clients = await Client.find({ userId }).select("_id").lean();
+  if (clients.length === 0) return;
+  await ChartResult.updateMany(
+    { clientId: { $in: clients.map((c) => c._id) }, isPrimary: true },
+    { $set: { isPrimary: false } }
+  );
+}
+
+/** Если primary нет — помечает самую новую карту (миграция старых данных) */
+async function ensurePrimaryFlag(userId: string) {
+  const clients = await Client.find({ userId }).select("_id").lean();
+  if (clients.length === 0) return;
+  const clientIds = clients.map((c) => c._id);
+  const primary = await ChartResult.findOne({
+    clientId: { $in: clientIds },
+    isPrimary: true,
+  })
+    .select("_id")
+    .lean();
+  if (primary) return;
+  const newest = await ChartResult.findOne({ clientId: { $in: clientIds } })
+    .sort({ createdAt: -1 })
+    .select("_id")
+    .lean();
+  if (newest) {
+    await ChartResult.updateOne({ _id: newest._id }, { $set: { isPrimary: true } });
+  }
+}
+
 // Запускает полный pipeline: AI → API → интерпретация
 export async function runChartPipeline(
   birthInput: BirthInput,
   userId: string,
-  name?: string
+  options?: { name?: string; asPrimary?: boolean }
 ) {
   await connectDb();
 
   const parsed = parseBirthInput(birthInput);
-  await saveUserBirthPreferences(userId, parsed, name);
+  const asPrimary = Boolean(options?.asPrimary);
+
+  if (asPrimary) {
+    await clearPrimaryFlags(userId);
+    await saveUserBirthPreferences(userId, parsed, options?.name);
+  }
+
   const client = await Client.create({ birthInput: parsed, userId });
 
   const chartRequest = await ChartRequest.create({
@@ -129,6 +166,7 @@ export async function runChartPipeline(
     clientId: client._id,
     requestId: chartRequest._id,
     status: "pending",
+    isPrimary: asPrimary,
   });
 
   try {
@@ -220,6 +258,7 @@ export async function getChartById(chartId: string, userId: string) {
   return {
     chartId: result._id.toString(),
     status,
+    isPrimary: Boolean(result.isPrimary),
     birthInput: (result.clientId as { birthInput?: unknown })?.birthInput,
     summary: result.interpretation?.short,
     highlights: result.interpretation?.highlights,
@@ -244,6 +283,7 @@ export async function getChartById(chartId: string, userId: string) {
 // Возвращает список карт текущего пользователя
 export async function getUserCharts(userId: string) {
   await connectDb();
+  await ensurePrimaryFlag(userId);
 
   const clients = await Client.find({ userId }).select("_id birthInput").lean();
   if (clients.length === 0) return [];
@@ -253,7 +293,9 @@ export async function getUserCharts(userId: string) {
 
   const results = await ChartResult.find({ clientId: { $in: clientIds } })
     .sort({ createdAt: -1 })
-    .select("_id status interpretation clientId createdAt planets houses planetsDisplay housesDisplay housesPlanetsDisplay")
+    .select(
+      "_id status interpretation clientId createdAt isPrimary planets houses planetsDisplay housesDisplay housesPlanetsDisplay"
+    )
     .lean();
 
   return results.map((r) => {
@@ -263,6 +305,7 @@ export async function getUserCharts(userId: string) {
     return {
       chartId: r._id.toString(),
       status,
+      isPrimary: Boolean(r.isPrimary),
       summaryPreview: r.interpretation?.short?.slice(0, 120),
       birthInput: client?.birthInput,
       planets: r.planets,
@@ -277,6 +320,54 @@ export async function getUserCharts(userId: string) {
       createdAt: r.createdAt,
     };
   });
+}
+
+/** Удаляет карту владельца (result + request + client) */
+export async function deleteChart(chartId: string, userId: string) {
+  await connectDb();
+
+  const result = await ChartResult.findById(chartId).lean();
+  if (!result) return false;
+
+  const client = await Client.findById(result.clientId).lean();
+  if (!client || client.userId !== userId) return false;
+
+  await ChartResult.deleteOne({ _id: result._id });
+  await ChartRequest.deleteOne({ _id: result.requestId });
+  await Client.deleteOne({ _id: client._id });
+  return true;
+}
+
+/**
+ * Полный пересчёт основной: новая primary по ДР профиля,
+ * прежняя primary остаётся в списке без флага.
+ */
+export async function recalculatePrimaryChart(userId: string) {
+  await connectDb();
+
+  const user = await User.findById(userId).lean();
+  const prefs = user?.birthPreferences;
+  if (
+    !prefs?.date ||
+    !prefs?.time ||
+    !prefs?.placeName ||
+    prefs.latitude == null ||
+    prefs.longitude == null
+  ) {
+    throw new Error("В профиле нет полных данных рождения");
+  }
+
+  return runChartPipeline(
+    {
+      date: prefs.date,
+      time: prefs.time,
+      placeName: prefs.placeName,
+      latitude: prefs.latitude,
+      longitude: prefs.longitude,
+    },
+    userId,
+    { asPrimary: true }
+  );
 }
 
 // Отвечает на вопрос по сохранённой карте и сохраняет историю в БД
