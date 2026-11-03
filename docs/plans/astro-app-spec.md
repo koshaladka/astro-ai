@@ -404,7 +404,7 @@ Pipeline выполняется **синхронно** в POST handler. Очер
 
 ```
 astro/
-├── .cursor/plans/astro-app-spec.md
+├── docs/plans/astro-app-spec.md
 ├── app/
 │   ├── page.tsx                    ← форма карты
 │   ├── login/page.tsx
@@ -572,7 +572,7 @@ astro/
 ### Команды для агента в Cursor
 
 ```
-Используй superpowers workflow. Прочитай .cursor/plans/astro-app-spec.md.
+Используй superpowers workflow. Прочитай docs/plans/astro-app-spec.md.
 Начни с writing-plans для следующей фазы из §14.
 ```
 

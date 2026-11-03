@@ -1,30 +1,17 @@
-import OpenAI from "openai";
 import type { AiProvider } from "./types";
-import { loggedFetch } from "@/lib/utils/logged-fetch";
+import { createOpenAICompatibleProvider } from "./openai-compatible";
 
-// Создаёт клиент Polza AI через OpenAI-совместимый API
+// Polza AI — OpenAI-совместимый API. Модель: AI_MODEL или POLZA_MODEL.
 export function createPolzaProvider(): AiProvider {
   const apiKey = process.env.POLZA_API_KEY;
   if (!apiKey) {
     throw new Error("POLZA_API_KEY не задан");
   }
 
-  const baseURL = process.env.POLZA_BASE_URL || "https://polza.ai/api/v1";
-  const model = process.env.POLZA_MODEL || "gpt-4o-mini";
-  const client = new OpenAI({ apiKey, baseURL, fetch: loggedFetch });
-
-  return {
+  return createOpenAICompatibleProvider({
     name: "polza",
-    model,
-    async chat(messages) {
-      const response = await client.chat.completions.create({
-        model,
-        messages: messages.map((m) => ({
-          role: m.role as "system" | "user" | "assistant",
-          content: m.content,
-        })),
-      });
-      return response.choices[0]?.message?.content ?? "";
-    },
-  };
+    apiKey,
+    baseURL: process.env.POLZA_BASE_URL || "https://polza.ai/api/v1",
+    defaultModel: process.env.POLZA_MODEL || "gpt-4o-mini",
+  });
 }
