@@ -1,11 +1,6 @@
-import { readFileSync } from "fs";
-import { join } from "path";
+import { CHART_INTERPRETATION_PROMPT } from "@/lib/ai/prompts/chart-interpretation";
 
-// Читает шаблон промпта для первичной интерпретации карты
+// Возвращает шаблон промпта для первичной интерпретации карты (из бандла, без чтения файла)
 export function loadChartInterpretationPrompt(): string {
-  const path = join(
-    process.cwd(),
-    "lib/ai/prompts/chart-interpretation.md"
-  );
-  return readFileSync(path, "utf-8");
+  return CHART_INTERPRETATION_PROMPT;
 }

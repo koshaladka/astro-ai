@@ -66,6 +66,7 @@ ${formatHouses(hd)}
 Дома и планеты в них:
 ${formatHousesPlanets(hpd)}`;
 
+// Текст промпта канонически в chart-interpretation.ts; .md — копия для ручного просмотра
 const systemPrompt = readFileSync(
   "lib/ai/prompts/chart-interpretation.md",
   "utf8"

@@ -122,9 +122,9 @@ npm run docker:up
 | `.next`, `public`, `package.json`, `next.config.mjs` | Next.js app |
 | `mock/` | моки Astrology API |
 | `src/` | CLI |
-| `lib/ai/prompts/` | system prompt интерпретации (`chart-interpretation.md`) |
+| `lib/ai/prompts/` | копия промптов (скрипты / отладка); app берёт текст из `.ts`-бандла |
 
-Промпт читается с диска в рантайме (`loadChartInterpretationPrompt`). Добавили новый `.md` / папку под runtime — сразу `COPY` в `Dockerfile`.
+Промпт интерпретации — в `lib/ai/prompts/chart-interpretation.ts` (вшивается в `.next`). Меняешь текст — правь `.ts` и синхронизируй `.md`. Новый runtime-файл с диска — сразу `COPY` в `Dockerfile`.
 
 | Сервис | URL |
 |--------|-----|
