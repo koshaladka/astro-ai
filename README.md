@@ -113,6 +113,19 @@ npm run dev
 npm run docker:up
 ```
 
+После правок кода/промптов — снова `npm run docker:up` (пересборка образа). Без `--build` старый образ останется без новых файлов.
+
+**Что должно быть в runner-образе** (`Dockerfile`, stage `runner`) — иначе runtime `ENOENT`:
+
+| Путь | Зачем |
+|------|--------|
+| `.next`, `public`, `package.json`, `next.config.mjs` | Next.js app |
+| `mock/` | моки Astrology API |
+| `src/` | CLI |
+| `lib/ai/prompts/` | system prompt интерпретации (`chart-interpretation.md`) |
+
+Промпт читается с диска в рантайме (`loadChartInterpretationPrompt`). Добавили новый `.md` / папку под runtime — сразу `COPY` в `Dockerfile`.
+
 | Сервис | URL |
 |--------|-----|
 | App | http://localhost:4000 |
