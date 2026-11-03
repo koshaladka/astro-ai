@@ -70,6 +70,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 - Compose подменяет `MONGODB_URI` на docker-сеть `mongo`.
 - `NODE_ENV=production` → secure cookies → нужен HTTPS.
 - Код ждёт `POLZA_BASE_URL` / `POLZA_MODEL` (не `POLZA_AI_*`).
+- AI: `AI_PROVIDER=deepseek|polza|gigachat|mock`. Имя модели — только `AI_MODEL` (иначе дефолт провайдера). DeepSeek: `DEEPSEEK_API_KEY`.
 
 ## Полезные команды
 

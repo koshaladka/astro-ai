@@ -2,8 +2,9 @@ import GigaChat from "gigachat";
 import { Agent } from "node:https";
 import { logApiRequest, logApiResponse } from "@/lib/utils/api-logger";
 import type { AiProvider } from "./types";
+import { resolveAiModel } from "./openai-compatible";
 
-// Создаёт клиент GigaChat через официальный SDK
+// Создаёт клиент GigaChat через официальный SDK. Модель: AI_MODEL или GIGACHAT_MODEL.
 export function createGigaChatProvider(): AiProvider {
   const credentials =
     process.env.GIGACHAT_API_KEY || process.env.GIGACHAT_CREDENTIALS;
@@ -12,7 +13,7 @@ export function createGigaChatProvider(): AiProvider {
   }
 
   const httpsAgent = new Agent({ rejectUnauthorized: false });
-  const model = process.env.GIGACHAT_MODEL || "GigaChat";
+  const model = resolveAiModel(process.env.GIGACHAT_MODEL || "GigaChat");
   const client = new GigaChat({ credentials, model, httpsAgent });
 
   return {

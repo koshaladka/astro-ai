@@ -71,7 +71,8 @@ https://freeastrologyapi.com/api-reference/western-astrology/planets докум�
 | Переменная | Значение | Эффект |
 |------------|----------|--------|
 | `AI_PROVIDER` | `mock` | Mock AI + mock Astrology API |
-| `AI_PROVIDER` | `gigachat` / `polza` | Реальный AI |
+| `AI_PROVIDER` | `deepseek` / `gigachat` / `polza` | Реальный AI |
+| `AI_MODEL` | (пусто = дефолт провайдера) | Имя модели — одно место на всё |
 | `ASTROLOGY_API_KEY` | ключ | Реальный Astrology API (если не mock) |
 | `ASTROLOGY_USE_MOCK` | `true` | Принудительно mock Astrology |
 
