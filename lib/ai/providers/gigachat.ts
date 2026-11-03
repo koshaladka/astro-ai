@@ -1,4 +1,5 @@
 import GigaChat from "gigachat";
+import { randomUUID } from "node:crypto";
 import { Agent } from "node:https";
 import { logApiRequest, logApiResponse } from "@/lib/utils/api-logger";
 import type { AiProvider } from "./types";
@@ -25,19 +26,18 @@ export function createGigaChatProvider(): AiProvider {
         content: m.content,
       }));
 
-      logApiRequest("gigachat.chat", {
-        method: "POST",
-        url: "gigachat://chat",
-        body: { model, messages: payload },
-      });
-
-      const response = await client.chat({ messages: payload });
-      const output = response.choices?.[0]?.message?.content ?? "";
-
-      logApiResponse("gigachat.chat", {
-        status: 200,
-        body: { content: output },
-      });
+      const requestId = randomUUID();
+      const started = performance.now();
+      logApiRequest("gigachat.chat", { method: "POST", url: "", requestId });
+      let output: string;
+      try {
+        const response = await client.chat({ messages: payload });
+        output = response.choices?.[0]?.message?.content ?? "";
+        logApiResponse("gigachat.chat", { status: 200, requestId, durationMs: performance.now() - started });
+      } catch (error) {
+        logApiResponse("gigachat.chat", { status: 0, requestId, durationMs: performance.now() - started });
+        throw error;
+      }
 
       return output;
     },

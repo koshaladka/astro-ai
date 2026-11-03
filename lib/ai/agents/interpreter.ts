@@ -1,4 +1,5 @@
 import { loadChartInterpretationPrompt } from "@/lib/ai/prompts/load-chart-interpretation-prompt";
+import { buildNatalChatMessages } from "@/lib/ai/prompts/build-chart-chat";
 import { getAiProvider } from "@/lib/ai/providers";
 import {
   type HouseDisplayRow,
@@ -38,9 +39,8 @@ ${chartContext}`;
     {
       name: "interpreter",
       input: {
-        planetsDisplay,
-        housesDisplay,
-        housesPlanetsDisplay,
+        planetsCount: planetsDisplay.length,
+        housesCount: housesDisplay.length,
         promptVersion: PROMPT_VERSION,
       },
     }
@@ -61,8 +61,6 @@ type ChartKnowledge = {
   planets?: unknown;
   houses?: unknown;
   interpretation?: string;
-  apiPayload?: unknown;
-  birthInput?: unknown;
 };
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -129,37 +127,13 @@ export async function askAboutChart(
   const provider = getAiProvider();
   const { planetsDisplay, housesDisplay, housesPlanetsDisplay } =
     resolveChartDisplay(chart);
-  const chartContext = formatChartContextForAi(
-    planetsDisplay,
-    housesDisplay,
-    housesPlanetsDisplay
-  );
-
-  const systemPrompt = `Ты астролог-консультант. Отвечай на русском, опираясь только на данные натальной карты ниже.
-Не вызывай внешние API и не выдумывай положения планет, знаки, дома или аспекты, которых нет в данных.
-Без медицинских и фаталистических предсказаний. Кратко и по делу.`;
-
-  const userContext = `Данные рождения: ${JSON.stringify(chart.birthInput ?? {})}
-
-${chartContext}
-
-Интерпретация:
-${chart.interpretation ?? "—"}`;
-
-  const messages: { role: string; content: string }[] = [
-    { role: "system", content: systemPrompt },
-    { role: "user", content: userContext },
-  ];
-
-  for (const msg of history.slice(-6)) {
-    messages.push({ role: msg.role, content: msg.content });
-  }
-
-  messages.push({ role: "user", content: question });
+  const messages = buildNatalChatMessages({
+    planetsDisplay, housesDisplay, housesPlanetsDisplay, interpretation: chart.interpretation,
+  }, question, history);
 
   const { output } = await tracedChat(provider, messages, {
     name: "chart-qa",
-    input: { question, historyLength: history.length },
+    input: { historyLength: history.length },
   });
 
   return output.trim();
