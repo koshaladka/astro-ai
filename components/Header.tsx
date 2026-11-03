@@ -54,7 +54,7 @@ export function Header() {
               aria-expanded={menuOpen}
               aria-haspopup="true"
             >
-              {user.name || user.email}
+              Меню
             </button>
             {menuOpen && (
               <ul className="user-menu-dropdown" role="menu">

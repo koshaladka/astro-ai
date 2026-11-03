@@ -7,7 +7,8 @@ import { Overlay, type OverlayRecord } from "@/lib/db/models/Overlay";
 import { ChartResult } from "@/lib/db/models/ChartResult";
 import { Client } from "@/lib/db/models/Client";
 import { fetchEclipsePlanets } from "@/lib/astrology/client";
-import { CALCULATION_VERSION, calculateAspects, extractPositions } from "@/lib/overlays/aspects";
+import { CALCULATION_VERSION, calculateAspects, extractPositions, activeAspects } from "@/lib/overlays/aspects";
+import { currentOverlayContext, hasCurrentAiContext } from "@/lib/overlays/active-context";
 import { ECLIPSE_CATALOG, ECLIPSE_TYPES } from "@/lib/overlays/catalog";
 import type { OverlayView } from "@/lib/overlays/types";
 import { OverlayError } from "@/lib/overlays/errors";
@@ -99,9 +100,10 @@ export async function prepareEclipse(eclipseId: string) {
 }
 
 function toView(r: OverlayRecord & { _id: mongoose.Types.ObjectId }): OverlayView {
-  return { id: String(r._id), natal: r.natal, eclipse: r.eclipse, aspects: r.aspects,
-    interpretation: r.interpretation, interpretationStatus: r.interpretationStatus,
-    interpretationError: r.interpretationError, messages: r.messages,
+  const current = currentOverlayContext(r);
+  return { id: String(r._id), natal: r.natal, eclipse: r.eclipse, aspects: current.aspects,
+    interpretation: current.interpretation, interpretationStatus: current.interpretationStatus,
+    interpretationError: current.interpretationError, messages: current.messages,
     busy: !!r.lockUntil && r.lockUntil > new Date(), createdAt: r.createdAt.toISOString() };
 }
 export async function getOverlay(id: string, userId: string) {
@@ -113,16 +115,16 @@ export async function getOverlay(id: string, userId: string) {
 export async function listOverlays(userId: string) {
   await db();
   const rows = await Overlay.find({ userId }).sort({ createdAt: -1 })
-    .select("natal.label eclipse.type eclipse.maximumAt aspects interpretationStatus createdAt").lean();
+    .select("natal.label eclipse.type eclipse.maximumAt aspects interpretationStatus calculationVersion aiCalculationVersion createdAt").lean();
   return rows.map(r => ({ id: String(r._id), label: r.natal.label, eclipseType: r.eclipse.type,
-    maximumAt: r.eclipse.maximumAt, aspectCount: r.aspects.length,
-    interpretationStatus: r.interpretationStatus, createdAt: r.createdAt.toISOString() }));
+    maximumAt: r.eclipse.maximumAt, aspectCount: activeAspects(r.aspects).length,
+    interpretationStatus: hasCurrentAiContext(r) ? r.interpretationStatus : activeAspects(r.aspects).length ? "idle" : "empty", createdAt: r.createdAt.toISOString() }));
 }
 export async function createOverlay(input: unknown, userId: string) {
   const { natalChartId, eclipseId } = z.object({ natalChartId: objectId, eclipseId: objectId }).parse(input);
   await db();
   const key = { userId, natalChartId, eclipseId, calculationVersion: CALCULATION_VERSION };
-  const existing = await Overlay.findOne(key).lean();
+  const existing = await Overlay.findOne({ userId, natalChartId, eclipseId }).sort({ createdAt: -1 }).lean();
   if (existing) return { overlay: toView(existing), created: false };
   // Проверка владельца обязательна даже при знании чужого chartId.
   const clients = await Client.find({ userId }).select("_id birthInput").lean();
@@ -158,7 +160,26 @@ async function claimOverlay(id: string, userId: string) {
     if (!await Overlay.exists({ _id: id, userId })) throw new OverlayError("Наложение не найдено", 404);
     throw new OverlayError("ИИ уже обрабатывает запрос. Дождитесь завершения.", 409);
   }
-  return { record: r, token };
+  try {
+    // Первая новая AI-операция архивирует прежний текст/чат, не удаляя старые аспекты.
+    // GET остаётся read-only; в Astro API повторно не обращаемся.
+    if (!hasCurrentAiContext(r)) {
+      const current = currentOverlayContext(r);
+      const migrated = await Overlay.updateOne({ _id: id, lockToken: token }, { $set: {
+        ...(!r.previousContext ? { previousContext: {
+          calculationVersion: r.aiCalculationVersion ?? r.calculationVersion,
+          aspects: r.aspects, interpretation: r.interpretation, messages: r.messages,
+        } } : {}),
+        interpretation: "", messages: [], aiCalculationVersion: CALCULATION_VERSION,
+        interpretationStatus: current.interpretationStatus,
+      }, $unset: { interpretationError: 1 } });
+      if (!migrated.matchedCount) throw new OverlayError("Контекст уже обновляется. Откройте результат заново.", 409);
+    }
+    return { record: currentOverlayContext(r), token };
+  } catch (error) {
+    await Overlay.updateOne({ _id: id, lockToken: token }, { $unset: { lockToken: 1, lockUntil: 1 } });
+    throw error;
+  }
 }
 export async function reinterpretOverlay(id: string, userId: string) {
   const { record, token } = await claimOverlay(id, userId);
