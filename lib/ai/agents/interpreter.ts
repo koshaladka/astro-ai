@@ -10,7 +10,7 @@ import {
 } from "@/lib/astrology/chart-format";
 import { tracedChat } from "@/lib/observability/langfuse";
 
-const PROMPT_VERSION = "v2-planet-paragraphs";
+const PROMPT_VERSION = "v3-neutral-variants";
 
 // Генерирует описание натальной карты по сохранённым таблицам планет и домов
 export async function interpretChart(
