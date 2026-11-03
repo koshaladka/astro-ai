@@ -263,13 +263,6 @@ export function ChartView({
           ) : (
             <p className="hint">Описание пока не сгенерировано.</p>
           )}
-          {chart.highlights && chart.highlights.length > 0 && (
-            <ul className="highlights">
-              {chart.highlights.map((h, i) => (
-                <li key={i}>{h}</li>
-              ))}
-            </ul>
-          )}
         </section>
       )}
 

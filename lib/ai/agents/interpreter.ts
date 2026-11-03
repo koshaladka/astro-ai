@@ -10,7 +10,7 @@ import {
 } from "@/lib/astrology/chart-format";
 import { tracedChat } from "@/lib/observability/langfuse";
 
-const PROMPT_VERSION = "v1";
+const PROMPT_VERSION = "v2-planet-paragraphs";
 
 // Генерирует описание натальной карты по сохранённым таблицам планет и домов
 export async function interpretChart(
@@ -46,15 +46,10 @@ ${chartContext}`;
     }
   );
 
-  const highlights = output
-    .split("\n")
-    .map((l) => l.replace(/^[-•*#]+\s*/, "").trim())
-    .filter((l) => l.length > 20 && !l.startsWith("["))
-    .slice(0, 4);
 
   return {
     short: output.trim(),
-    highlights,
+    highlights: [],
     agentTrace: { ...trace, promptVersion: PROMPT_VERSION },
   };
 }
