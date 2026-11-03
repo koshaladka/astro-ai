@@ -65,7 +65,7 @@ export function Header() {
                     role="menuitem"
                     onClick={() => setMenuOpen(false)}
                   >
-                    Мой профиль
+                    Моя карта
                   </Link>
                 </li>
                 <li role="none">

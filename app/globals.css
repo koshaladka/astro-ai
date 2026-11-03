@@ -509,3 +509,7 @@ button.btn-subtle:focus-visible {
 .eclipse-catalog-item details { margin: .3rem 0; color: var(--muted); font-size: .8rem; }
 .eclipse-catalog-item summary { cursor: pointer; }
 .eclipse-catalog-item details .hint { margin: .5rem 0; }
+
+.chart-tables-block > summary { cursor: pointer; }
+.chart-tables-block > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.profile-email { overflow-wrap: anywhere; }

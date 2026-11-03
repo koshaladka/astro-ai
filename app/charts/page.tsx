@@ -82,13 +82,13 @@ export default function ChartsPage() {
                   {c.isPrimary ? "★ " : ""}
                   {c.birthInput?.date} · {c.birthInput?.time} · {c.birthInput?.placeName}
                 </Link>
-                <button
+                {!c.isPrimary && <button
                   type="button"
                   onClick={() => removeChart(c.chartId)}
                   disabled={deletingId === c.chartId}
                 >
                   {deletingId === c.chartId ? "…" : "Удалить"}
-                </button>
+                </button>}
               </div>
               {c.isPrimary && <p className="hint">Основная</p>}
               {c.summaryPreview && <p className="hint">{c.summaryPreview}…</p>}

@@ -142,7 +142,7 @@ export default function HomePage() {
   if (loading) {
     return (
       <main>
-        <p className="loading">Загружаем профиль…</p>
+        <p className="loading">Загружаем карту…</p>
       </main>
     );
   }
@@ -164,14 +164,14 @@ export default function HomePage() {
   return (
     <main>
       <div className="section-header">
-        <h1>Мой профиль</h1>
+        <h1>Моя карта</h1>
         <Link href="/charts/new" className="btn-ghost">
           Добавить карту
         </Link>
       </div>
-      <p className="subtitle">{profile?.email}</p>
 
       <section className="card">
+        <p className="hint profile-email">{profile?.email}</p>
         {!editing ? (
           <>
             <p>
@@ -277,10 +277,6 @@ export default function HomePage() {
           <ChartView
             chartId={primary.chartId}
             showTitle={false}
-            onDeleted={() => {
-              setPrimary(null);
-              load();
-            }}
           />
         </section>
       )}

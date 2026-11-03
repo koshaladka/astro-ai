@@ -15,8 +15,8 @@ export function ChartTables({ planetsDisplay, housesDisplay }: ChartTablesProps)
   return (
     <>
       {planetRows.length > 0 && (
-        <div className="chart-tables-block">
-          <h3 className="section-title">Планеты</h3>
+        <details className="chart-tables-block">
+          <summary className="section-title">Планеты</summary>
           <table>
             <thead>
               <tr>
@@ -40,12 +40,12 @@ export function ChartTables({ planetsDisplay, housesDisplay }: ChartTablesProps)
               ))}
             </tbody>
           </table>
-        </div>
+        </details>
       )}
 
       {houseRows.length > 0 && (
-        <div className="chart-tables-block">
-          <h3 className="section-title">Дома</h3>
+        <details className="chart-tables-block">
+          <summary className="section-title">Дома</summary>
           <table>
             <thead>
               <tr>
@@ -64,7 +64,7 @@ export function ChartTables({ planetsDisplay, housesDisplay }: ChartTablesProps)
               ))}
             </tbody>
           </table>
-        </div>
+        </details>
       )}
     </>
   );
