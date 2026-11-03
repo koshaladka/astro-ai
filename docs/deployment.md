@@ -56,30 +56,50 @@ crontab -l | grep acme
 
 С доменом позже: обычный LE 90 дней (`-d example.com` без `shortlived`), тот же nginx.
 
-## Обновление кода (каждый деплой)
+## Деплой через GitHub Actions (основной путь)
 
-**Триггер:** пользователь сказал «да» на вопрос «Мержить в main?» → PR смержен в `main` → этот чеклист.
+**Триггер:** merge/push в `main` (или ручной Run workflow) → [`.github/workflows/deploy-prod.yml`](../.github/workflows/deploy-prod.yml):
 
-**Агенты: перед/после деплоя сверять этот чеклист.** Не затирать `/opt/astro-ai/.env`.
+1. Сборка Docker-образа **в GitHub** (не на VPS).
+2. Push в `ghcr.io/koshaladka/astro-ai`.
+3. SSH на VPS → `docker pull` → `docker compose up -d`.
+4. `.env` на сервере **не** трогаем.
 
-Быстро (агент / чат): `/git-pull` или:
+`next build` на VPS больше не нужен → меньше риск OOM и долгого простоя.
 
-```bash
-bash scripts/git-pull-prod.sh
-```
+### Секреты GitHub Actions (обязательно один раз)
 
-Вручную:
+Куда: репозиторий **koshaladka/astro-ai** → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**.
+
+| Имя секрета | Значение |
+|-------------|----------|
+| `PROD_SSH_HOST` | `104.253.18.4` |
+| `PROD_SSH_USER` | `root` |
+| `PROD_SSH_PRIVATE_KEY` | Приватный SSH-ключ целиком (`-----BEGIN…` … `-----END…`), тот же что для Cursor `ASTRO_SSH_PRIVATE_KEY` |
+
+`GITHUB_TOKEN` для push/pull GHCR выдаёт Actions сам — **отдельный секрет не нужен**.
+
+После первого успешного push пакета: GitHub → **Packages** → `astro-ai` → Package settings → убедиться, что пакет связан с репо (обычно автоматически).
+
+### Ручной / агентский fallback (без сборки на VPS)
+
+Образ уже должен быть в GHCR (`:latest` или конкретный sha).
 
 ```bash
 bash scripts/setup-astro-ssh.sh
-ssh astro-vps 'cd /opt/astro-ai && git fetch origin main && git checkout main && git pull --ff-only origin main && docker compose -f docker-compose.prod.yml up -d --build'
+ASTRO_IMAGE=ghcr.io/koshaladka/astro-ai:latest bash scripts/git-pull-prod.sh
 curl -sS https://104.253.18.4/api/health
-# smoke: POST /api/charts под сессией → status complete (не ENOENT на prompts)
 ```
 
-На самом сервере (после входа по SSH): команда `git_pull`.
+Не использовать `docker compose … --build` на VPS (2 ГБ RAM — `next build` часто валит деплой).
+
+На сервере после SSH: обновить код + pull образа (см. workflow), не локальный `npm run build`.
 
 Если на сервере ещё нет `.git` — один раз: `apt-get install -y git`, сохранить `.env`, `git clone -b main https://github.com/koshaladka/astro-ai.git /opt/astro-ai`, вернуть `.env`.
+
+### Swap на VPS (страховка)
+
+На ~2 ГБ RAM желателен файл подкачки `/swapfile` (2 ГБ) + строка в `/etc/fstab`. Не заменяет вынос сборки в Actions, но спасает Mongo/app при пиках.
 
 ### Docker runner — обязательно копировать с диска
 

@@ -1,8 +1,10 @@
 # Prod: app + mongo only (без Langfuse — мало RAM на VPS).
+# Образ app собирается в GitHub Actions и тянется с GHCR (см. .github/workflows/deploy-prod.yml).
 # HTTPS терминирует nginx на хосте → 127.0.0.1:APP_PORT
 services:
   app:
-    build: .
+    image: ${ASTRO_IMAGE:-ghcr.io/koshaladka/astro-ai:latest}
+    pull_policy: always
     restart: unless-stopped
     env_file: .env
     environment:
