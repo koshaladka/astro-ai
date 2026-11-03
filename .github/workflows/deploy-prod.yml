@@ -65,8 +65,17 @@ jobs:
             git checkout -B main origin/main
             export ASTRO_IMAGE="$IMAGE_TAG"
             docker pull "$ASTRO_IMAGE"
-            docker compose -f docker-compose.prod.yml up -d
-            sleep 3
-            curl -sfS http://127.0.0.1:4000/api/health
-            echo
+            docker tag "$ASTRO_IMAGE" ghcr.io/koshaladka/astro-ai:latest
+            docker compose -f docker-compose.prod.yml up -d --pull never
+            # next start на слабом VPS может подняться не за 3с
+            ok=0
+            for i in $(seq 1 30); do
+              if curl -sfS http://127.0.0.1:4000/api/health; then
+                echo
+                ok=1
+                break
+              fi
+              sleep 3
+            done
+            test "$ok" = 1
             git log -1 --oneline
