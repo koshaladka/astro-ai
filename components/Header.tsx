@@ -60,12 +60,22 @@ export function Header() {
               <ul className="user-menu-dropdown" role="menu">
                 <li role="none">
                   <Link
-                    href="/profile"
+                    href="/"
                     className="user-menu-item"
                     role="menuitem"
                     onClick={() => setMenuOpen(false)}
                   >
-                    Профиль
+                    Мой профиль
+                  </Link>
+                </li>
+                <li role="none">
+                  <Link
+                    href="/charts"
+                    className="user-menu-item"
+                    role="menuitem"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Мои карты
                   </Link>
                 </li>
                 <li role="none">

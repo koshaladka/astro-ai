@@ -5,6 +5,7 @@
 | Файл | Описание |
 |------|----------|
 | [astro-app-spec.md](./astro-app-spec.md) | Полная спека Astro App (фронт + AI + API + MongoDB) |
+| [profile-charts-ux.md](./profile-charts-ux.md) | Профиль, основная карта, Мои карты |
 | [доработки.md](./доработки.md) | Backlog после MVP |
 
 ## Как запустить агента

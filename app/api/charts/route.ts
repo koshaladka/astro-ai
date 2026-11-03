@@ -25,7 +25,11 @@ export const POST = withRouteLog("charts.POST", async (request) => {
     const body = await request.json();
     const birthInput = birthInputSchema.parse(body);
     const name = typeof body.name === "string" && body.name.trim() ? body.name.trim() : undefined;
-    const result = await runChartPipeline(birthInput, session.userId, name);
+    const asPrimary = Boolean(body.asPrimary);
+    const result = await runChartPipeline(birthInput, session.userId, {
+      name,
+      asPrimary,
+    });
 
     return NextResponse.json({
       chartId: result.chartId,
