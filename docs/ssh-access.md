@@ -26,3 +26,5 @@ ssh astro-vps 'hostname'
 ## Агентам
 
 Перед работой на VPS: проверь секреты → `setup-astro-ssh.sh`. Не коммить ключи. Не класть ключ в `docs/` / git.
+
+После merge в `main` — деплой только по [`deployment.md`](./deployment.md) (git pull + rebuild).

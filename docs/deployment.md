@@ -58,15 +58,18 @@ crontab -l | grep acme
 
 ## Обновление кода (каждый деплой)
 
-**Агенты: перед/после деплоя сверять этот чеклист.**
+**Триггер:** пользователь сказал «да» на вопрос «Мержить в main?» → PR смержен в `main` → этот чеклист.
+
+**Агенты: перед/после деплоя сверять этот чеклист.** Не затирать `/opt/astro-ai/.env`.
 
 ```bash
-# сохранить .env; залить код в /opt/astro-ai; не затирать .env
-cd /opt/astro-ai
-docker compose -f docker-compose.prod.yml up -d --build
+bash scripts/setup-astro-ssh.sh
+ssh astro-vps 'cd /opt/astro-ai && git fetch origin main && git checkout main && git pull --ff-only origin main && docker compose -f docker-compose.prod.yml up -d --build'
 curl -sS https://104.253.18.4/api/health
 # smoke: POST /api/charts под сессией → status complete (не ENOENT на prompts)
 ```
+
+Если на сервере ещё нет `.git` — один раз: `apt-get install -y git`, сохранить `.env`, `git clone -b main https://github.com/koshaladka/astro-ai.git /opt/astro-ai`, вернуть `.env`.
 
 ### Docker runner — обязательно копировать с диска
 

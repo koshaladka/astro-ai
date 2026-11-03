@@ -5,7 +5,7 @@
 | Путь | Что внутри |
 |------|------------|
 | [plans/](./plans/) | Спеки и планы фич |
-| [deployment.md](./deployment.md) | Развёртывание на VPS, HTTPS, обновление |
+| [deployment.md](./deployment.md) | VPS, HTTPS, обновление после merge в `main` |
 | [ai-providers.md](./ai-providers.md) | Переключение AI / `AI_MODEL` |
 | [ssh-access.md](./ssh-access.md) | SSH к VPS из любого Cloud-чата (секреты) |
 | [reference/ai-providers/](./reference/ai-providers/) | Референсы AI-провайдеров |
