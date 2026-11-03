@@ -18,8 +18,9 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/next.config.mjs ./
-# Runtime-файлы с диска (не в .next): mock, CLI, AI-промпты.
-# Новый runtime-путь → добавить COPY сюда, иначе ENOENT в контейнере.
+# Runtime-файлы с диска (не в .next): mock, CLI; prompts — для скриптов/отладки.
+# App-промпт вшит в бандл из chart-interpretation.ts — без md ENOENT не будет.
+# Новый runtime-путь с диска → добавить COPY сюда.
 COPY --from=builder /app/mock ./mock
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/lib/ai/prompts ./lib/ai/prompts
