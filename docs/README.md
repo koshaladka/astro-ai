@@ -5,6 +5,7 @@
 | Путь | Что внутри |
 |------|------------|
 | [plans/](./plans/) | Спеки и планы фич |
+| [План по персональным данным РФ](./plans/personal-data-compliance-ru.md) | Локализация, API, уведомления, документы и ближайшие задачи |
 | [deployment.md](./deployment.md) | VPS, HTTPS, обновление после merge в `main` |
 | [overlays.md](./overlays.md) | «Наложения»: начальное заполнение каталога, время и сохранение расчётов |
 | [ai-providers.md](./ai-providers.md) | Переключение AI / `AI_MODEL` |
