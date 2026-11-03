@@ -12,7 +12,7 @@ fi
 ssh astro-vps 'set -euo pipefail
   cd /opt/astro-ai
   git fetch origin main
-  git checkout main
+  git checkout -B main origin/main 2>/dev/null || git checkout -B main FETCH_HEAD
   git pull --ff-only origin main
   docker compose -f docker-compose.prod.yml up -d --build
   git log -1 --oneline
