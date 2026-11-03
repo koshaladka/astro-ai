@@ -1,6 +1,8 @@
 .cursor/*
 !.cursor/skills/
 !.cursor/skills/**
+!.cursor/commands/
+!.cursor/commands/**
 .env
 .next/
 node_modules/
