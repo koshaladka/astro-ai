@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 registerHooks({ resolve(specifier, context, nextResolve) {
+  if (specifier.startsWith("@/")) return nextResolve(new URL("../" + specifier.slice(2) + ".ts", import.meta.url).href, context);
   if (specifier.startsWith('.') && context.parentURL?.startsWith('file:') && !specifier.endsWith('.ts')) {
     const candidate = new URL(specifier + '.ts', context.parentURL);
     if (existsSync(fileURLToPath(candidate))) return nextResolve(candidate.href, context);

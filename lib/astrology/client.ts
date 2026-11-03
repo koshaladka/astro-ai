@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 import type { ApiPayload } from "@/lib/schemas/birth-payload.zod";
+import { astrologyPayload } from "@/lib/privacy/projections";
 import { loggedFetch } from "@/lib/utils/logged-fetch";
 
 const API_URLS = {
@@ -46,14 +47,13 @@ async function fetchEndpoint(url: string, body: ApiPayload, signal?: AbortSignal
         "Content-Type": "application/json",
         "x-api-key": apiKey,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(astrologyPayload(body)),
     },
     step
   );
 
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Astrology API ${response.status}: ${text}`);
+    throw new Error(`Astrology API ${response.status}: запрос не выполнен`);
   }
 
   return response.json();
