@@ -18,6 +18,7 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/next.config.mjs ./
+# Runtime files read from disk (не только .next) — см. docs/deployment.md § Docker runner
 COPY --from=builder /app/mock ./mock
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/lib/ai/prompts ./lib/ai/prompts
