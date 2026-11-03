@@ -458,3 +458,19 @@ main a {
 .qa-form {
   margin-top: 1rem;
 }
+
+/* Наложения */
+select, textarea { width: 100%; min-width: 0; padding: .65rem .75rem; margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; }
+textarea { resize: vertical; }
+select:focus, textarea:focus { outline: 2px solid var(--accent); }
+.overlay-form { margin: 1.5rem 0; }
+.overlay-form h2, .overlay-form h3 { margin-top: 0; }
+.overlay-catalog { margin-top: 3rem; }
+.overlay-catalog-list { margin-top: 1rem; }
+.overlay-catalog-list details { margin-bottom: 1rem; }
+.overlay-table-wrap { overflow-x: auto; }
+.overlay-table-wrap small { display: block; color: var(--muted); white-space: nowrap; }
+.overlay-selected { background: rgba(124, 156, 255, .12); }
+.overlay-selected-aspect { border-left: 2px solid var(--accent); padding-left: .75rem; }
+.overlay-interpretation { margin-bottom: 2rem; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
