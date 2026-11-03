@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { ECLIPSE_TYPES } from "@/lib/overlays/catalog";
-import { formatLongitude } from "@/lib/overlays/aspects";
+import { formatLongitude, eclipseLuminary } from "@/lib/overlays/aspects";
 import { overlayApi, utcLabel } from "@/lib/overlays/browser-api";
 import type { OverlayView } from "@/lib/overlays/types";
 
@@ -63,11 +63,11 @@ export default function OverlayPage({ params }: { params: { id: string } }) {
     <Link className="back-link" href="/overlays">← Наложения</Link>
     <h1>{ECLIPSE_TYPES[overlay.eclipse.type]} затмение</h1>
     <p>{utcLabel(overlay.eclipse.maximumAt)}</p><p>{overlay.natal.label}</p>
-    <p className="hint">Соединения до 5° включительно · сортировка по точности</p>
+    <p className="hint">{eclipseLuminary(overlay.eclipse.type) === "Sun" ? "Аспекты транзитного Солнца" : "Аспекты транзитной Луны"} · пять типов · орбис до 5° включительно</p>
     {error && <p className="error" role="alert">{error}</p>}
-    <h2 className="section-title">Соединения · {overlay.aspects.length}</h2>
-    {!overlay.aspects.length ? <p className="card">Соединений в пределах 5° не найдено. Расшифровка автоматически не запрашивалась.</p> : <div className="overlay-table-wrap"><table>
-      <thead><tr><th>Натальная карта</th><th>Аспект</th><th>Карта затмения</th><th>Орбис</th><th><span className="sr-only">Обсуждение</span></th></tr></thead>
+    <h2 className="section-title">Аспекты затмения · {overlay.aspects.length}</h2>
+    {!overlay.aspects.length ? <p className="card">Аспектов светила затмения в пределах 5° не найдено. Расшифровка автоматически не запрашивалась.</p> : <div className="overlay-table-wrap"><table>
+      <thead><tr><th>Натальная карта</th><th>Аспект</th><th>Светило затмения</th><th>Орбис</th><th><span className="sr-only">Обсуждение</span></th></tr></thead>
       <tbody>{overlay.aspects.map(a => <tr key={a.id} className={selected === a.id ? "overlay-selected" : ""}>
         <td>{a.natal.name}<small>{formatLongitude(a.natal.longitude)}</small></td>
         <td>{a.name}</td><td>{a.eclipse.name}<small>{formatLongitude(a.eclipse.longitude)}</small></td>
@@ -76,7 +76,7 @@ export default function OverlayPage({ params }: { params: { id: string } }) {
     </table></div>}
     <section className="overlay-interpretation">
       <div className="section-header"><h2 className="section-title">Расшифровка</h2>{overlay.aspects.length > 0 && <button type="button" className="btn-ghost" disabled={disabled} onClick={interpret}>{busy === "interpret" ? "ИИ готовит ответ…" : overlay.interpretation ? "Обновить расшифровку" : "Получить расшифровку"}</button>}</div>
-      {!overlay.interpretation && overlay.aspects.length > 0 && <p className="hint">Получите расшифровку соединений. Прежние трактовки других аспектов не используются.</p>}
+      {!overlay.interpretation && overlay.aspects.length > 0 && <p className="hint">Получите расшифровку аспектов затмения. Прежние трактовки другого набора аспектов не используются.</p>}
       {overlay.interpretation && <MarkdownContent>{overlay.interpretation}</MarkdownContent>}
       {(overlay.busy || busy) && <p className="hint" role="status">ИИ обрабатывает запрос…</p>}
       {overlay.interpretationError && <p className="error">{overlay.interpretationError}</p>}

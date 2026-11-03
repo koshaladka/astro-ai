@@ -2,12 +2,22 @@ import mongoose, { Schema, type Model } from "mongoose";
 import { aspectSchema, overlayMessageSchema } from "./overlay-schemas";
 import type { Aspect } from "@/lib/overlays/aspects";
 import type { EclipseSnapshot, NatalSnapshot, OverlayMessage, OverlayView } from "@/lib/overlays/types";
+export interface ArchivedOverlayContext {
+  calculationVersion: string; aspects: Aspect[]; interpretation: string; messages: OverlayMessage[];
+}
+const archivedContextSchema = new Schema<ArchivedOverlayContext>({
+  calculationVersion: { type: String, required: true },
+  aspects: { type: [aspectSchema], required: true },
+  interpretation: { type: String, default: "" },
+  messages: { type: [overlayMessageSchema], default: [] },
+}, { _id: false });
 export interface OverlayRecord {
   userId: string; natalChartId: string; eclipseId: string; calculationVersion: string;
   natal: NatalSnapshot; eclipse: EclipseSnapshot; aspects: Aspect[];
   interpretation: string; interpretationStatus: OverlayView["interpretationStatus"];
   interpretationError?: string; messages: OverlayMessage[];
   aiCalculationVersion?: string;
+  archivedContexts?: ArchivedOverlayContext[];
   previousContext?: {
     calculationVersion: string; aspects: Aspect[]; interpretation: string; messages: OverlayMessage[];
   };
@@ -22,6 +32,7 @@ const schema = new Schema<OverlayRecord>({
   interpretationError: String, messages: { type: [overlayMessageSchema], default: [] },
   aiCalculationVersion: String,
   previousContext: Schema.Types.Mixed,
+  archivedContexts: { type: [archivedContextSchema], default: [] },
   lockToken: String, lockUntil: Date,
 }, { timestamps: true });
 schema.index({ userId: 1, natalChartId: 1, eclipseId: 1, calculationVersion: 1 }, { unique: true });

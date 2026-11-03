@@ -7,7 +7,7 @@ import { Overlay, type OverlayRecord } from "@/lib/db/models/Overlay";
 import { ChartResult } from "@/lib/db/models/ChartResult";
 import { Client } from "@/lib/db/models/Client";
 import { fetchEclipsePlanets } from "@/lib/astrology/client";
-import { CALCULATION_VERSION, calculateAspects, extractPositions, activeAspects } from "@/lib/overlays/aspects";
+import { CALCULATION_VERSION, calculateEclipseAspects, extractPositions } from "@/lib/overlays/aspects";
 import { currentOverlayContext, hasCurrentAiContext } from "@/lib/overlays/active-context";
 import { ECLIPSE_CATALOG, ECLIPSE_TYPES } from "@/lib/overlays/catalog";
 import type { OverlayView } from "@/lib/overlays/types";
@@ -115,10 +115,14 @@ export async function getOverlay(id: string, userId: string) {
 export async function listOverlays(userId: string) {
   await db();
   const rows = await Overlay.find({ userId }).sort({ createdAt: -1 })
-    .select("natal.label eclipse.type eclipse.maximumAt aspects interpretationStatus calculationVersion aiCalculationVersion createdAt").lean();
-  return rows.map(r => ({ id: String(r._id), label: r.natal.label, eclipseType: r.eclipse.type,
-    maximumAt: r.eclipse.maximumAt, aspectCount: activeAspects(r.aspects).length,
-    interpretationStatus: hasCurrentAiContext(r) ? r.interpretationStatus : activeAspects(r.aspects).length ? "idle" : "empty", createdAt: r.createdAt.toISOString() }));
+    .select("natal.label natal.positions eclipse.type eclipse.maximumAt eclipse.positions aspects interpretationStatus calculationVersion aiCalculationVersion createdAt").lean();
+  return rows.map(r => {
+    const aspects = calculateEclipseAspects(r.natal.positions, r.eclipse.positions, r.eclipse.type);
+    return { id: String(r._id), label: r.natal.label, eclipseType: r.eclipse.type,
+      maximumAt: r.eclipse.maximumAt, aspectCount: aspects.length,
+      interpretationStatus: hasCurrentAiContext(r) ? r.interpretationStatus : aspects.length ? "idle" : "empty",
+      createdAt: r.createdAt.toISOString() };
+  });
 }
 export async function createOverlay(input: unknown, userId: string) {
   const { natalChartId, eclipseId } = z.object({ natalChartId: objectId, eclipseId: objectId }).parse(input);
@@ -134,7 +138,7 @@ export async function createOverlay(input: unknown, userId: string) {
   if (!client) throw new OverlayError("Натальная карта не найдена", 404);
   const positions = extractPositions(chart.planets);
   const eclipse = await prepareEclipse(eclipseId);
-  const aspects = calculateAspects(positions, eclipse.positions!);
+  const aspects = calculateEclipseAspects(positions, eclipse.positions!, eclipse.type);
   const birth = client.birthInput;
   const label = `${chart.isPrimary ? "Основная карта" : "Карта"} · ${birth.date} ${birth.time} · ${birth.placeName}`;
   try {
@@ -166,16 +170,16 @@ async function claimOverlay(id: string, userId: string) {
     if (!hasCurrentAiContext(r)) {
       const current = currentOverlayContext(r);
       const migrated = await Overlay.updateOne({ _id: id, lockToken: token }, { $set: {
-        ...(!r.previousContext ? { previousContext: {
-          calculationVersion: r.aiCalculationVersion ?? r.calculationVersion,
-          aspects: r.aspects, interpretation: r.interpretation, messages: r.messages,
-        } } : {}),
+        aspects: current.aspects,
         interpretation: "", messages: [], aiCalculationVersion: CALCULATION_VERSION,
         interpretationStatus: current.interpretationStatus,
-      }, $unset: { interpretationError: 1 } });
+      }, $push: { archivedContexts: {
+        calculationVersion: r.aiCalculationVersion ?? r.calculationVersion,
+        aspects: r.aspects, interpretation: r.interpretation, messages: r.messages,
+      } }, $unset: { interpretationError: 1 } });
       if (!migrated.matchedCount) throw new OverlayError("Контекст уже обновляется. Откройте результат заново.", 409);
     }
-    return { record: currentOverlayContext(r), token };
+    return { record: { ...currentOverlayContext(r), aiCalculationVersion: CALCULATION_VERSION }, token };
   } catch (error) {
     await Overlay.updateOne({ _id: id, lockToken: token }, { $unset: { lockToken: 1, lockUntil: 1 } });
     throw error;

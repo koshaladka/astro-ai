@@ -60,7 +60,7 @@ export default function OverlaysPage() {
   if (loading) return <main><p className="loading">Загружаем наложения…</p></main>;
   return <main>
     <div className="section-header"><h1>Наложения</h1><button type="button" onClick={() => setShowForm(x => !x)}>{showForm ? "Скрыть форму" : "Новое наложение"}</button></div>
-    <p className="subtitle">Натальная карта и затмение: соединения, расшифровка и обсуждение.</p>
+    <p className="subtitle">Натальная карта и затмение: аспекты светила затмения, расшифровка и обсуждение.</p>
     {error && <p className="error" role="alert">{error}</p>}
     {notice && <p role="status">{notice}</p>}
     {showForm && <form className="card overlay-form" onSubmit={create}>
@@ -77,8 +77,8 @@ export default function OverlaysPage() {
     <h2 className="section-title">Сохранённые наложения</h2>
     {!saved.length ? <p className="hint">Результатов пока нет. Создайте первое наложение.</p> : <ul className="chart-list">{saved.map(s => <li key={s.id} className="card chart-list-item">
       <Link href={`/overlays/${s.id}`}>{s.label} × {ECLIPSE_TYPES[s.eclipseType]}</Link>
-      <p>{utcLabel(s.maximumAt)} · Соединений: {s.aspectCount}</p>
-      <p className="hint">{s.interpretationStatus === "complete" ? "Расшифровка сохранена" : s.interpretationStatus === "empty" ? "Соединений в пределах 5° нет" : "Открыть расчёт и чат"}</p>
+      <p>{utcLabel(s.maximumAt)} · Аспектов затмения: {s.aspectCount}</p>
+      <p className="hint">{s.interpretationStatus === "complete" ? "Расшифровка сохранена" : s.interpretationStatus === "empty" ? "Аспектов затмения в пределах 5° нет" : "Открыть расчёт и чат"}</p>
     </li>)}</ul>}
     <section className="overlay-catalog">
       <div className="section-header"><h2 className="section-title">Каталог затмений</h2><button type="button" className="btn-ghost" onClick={() => setShowAdd(x => !x)}>Добавить затмение</button></div>
