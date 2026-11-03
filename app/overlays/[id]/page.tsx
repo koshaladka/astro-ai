@@ -57,11 +57,11 @@ export default function OverlayPage({ params }: { params: { id: string } }) {
     finally { setBusy(""); }
   }
   if (loading) return <main><p className="loading">Загружаем сохранённый расчёт…</p></main>;
-  if (!overlay) return <main><Link href="/overlays">← Наложения</Link><p className="error" role="alert">{error || "Наложение не найдено"}</p></main>;
+  if (!overlay) return <main><Link href="/overlays">← Затмения</Link><p className="error" role="alert">{error || "Наложение не найдено"}</p></main>;
   const aspect = overlay.aspects.find(a => a.id === selected);
   const disabled = !!busy || overlay.busy;
   return <main className="overlay-detail">
-    <Link className="back-link" href="/overlays">← Наложения</Link>
+    <Link className="back-link" href="/overlays">← Затмения</Link>
     <h1>{ECLIPSE_TYPES[overlay.eclipse.type]} затмение</h1>
     <p>{utcLabel(overlay.eclipse.maximumAt)}</p><p>{overlay.natal.label}</p>
     <p className="hint">{eclipseLuminary(overlay.eclipse.type) === "Sun" ? "Аспекты транзитного Солнца" : "Аспекты транзитной Луны"} · пять типов · орбис до 5° включительно</p>

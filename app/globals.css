@@ -495,3 +495,17 @@ button.btn-subtle:focus-visible {
 }
 .overlay-interpretation-actions { margin-top: 1.25rem; }
 .qa-answer-toggle { margin-bottom: .35rem; }
+
+/* Каталог затмений — компактный второстепенный список. */
+.overlay-catalog-list { gap: 0; }
+.eclipse-catalog-item {
+  padding: .85rem 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  font-size: .875rem;
+}
+.eclipse-catalog-item > strong { font-weight: 500; }
+.eclipse-catalog-item > p:not(.error) { color: var(--muted); margin: .3rem 0; }
+.eclipse-catalog-item details { margin: .3rem 0; color: var(--muted); font-size: .8rem; }
+.eclipse-catalog-item summary { cursor: pointer; }
+.eclipse-catalog-item details .hint { margin: .5rem 0; }

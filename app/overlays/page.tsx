@@ -57,9 +57,9 @@ export default function OverlaysPage() {
       await load(); setEclipseId(result.id); setShowAdd(false); setNewTime(""); setSource(""); setNotice("Затмение добавлено.");
     });
   }
-  if (loading) return <main><p className="loading">Загружаем наложения…</p></main>;
+  if (loading) return <main><p className="loading">Загружаем затмения…</p></main>;
   return <main>
-    <div className="section-header"><h1>Наложения</h1><button type="button" onClick={() => setShowForm(x => !x)}>{showForm ? "Скрыть форму" : "Новое наложение"}</button></div>
+    <div className="section-header"><h1>Затмения</h1><button type="button" onClick={() => setShowForm(x => !x)}>{showForm ? "Скрыть форму" : "Новое наложение"}</button></div>
     <p className="subtitle">Натальная карта и затмение: аспекты светила затмения, расшифровка и обсуждение.</p>
     {error && <p className="error" role="alert">{error}</p>}
     {notice && <p role="status">{notice}</p>}
@@ -103,11 +103,10 @@ export default function OverlaysPage() {
         await load(); setNotice(failures.length ? `Сохранено карт: ${pending.length - failures.length}. Ошибок: ${failures.length}.` : "Все карты каталога подготовлены и сохранены.");
         if (failures.length) throw new Error(failures[0]);
       })}>Подготовить все карты</button>}
-      <ul className="chart-list overlay-catalog-list">{eclipses.map(e => <li key={e.id} className="card">
+      <ul className="chart-list overlay-catalog-list">{eclipses.map(e => <li key={e.id} className="eclipse-catalog-item">
         <strong>{ECLIPSE_TYPES[e.type]}</strong><p>{utcLabel(e.maximumAt)}</p>
-        <p className="hint"><a href={e.sourceUrl} target="_blank" rel="noreferrer">Источник времени</a></p>
-        <details><summary>Точность времени</summary><p className="hint">{e.timeNote}</p></details>
-        {e.fetchStatus === "ready" ? <p className="hint">Положения сохранены</p> : <button className="btn-ghost" type="button" disabled={!!busy || e.busy} onClick={() => action(e.id, async () => {
+        <details><summary>Источник и точность времени</summary><p className="hint"><a href={e.sourceUrl} target="_blank" rel="noreferrer">Источник времени</a></p><p className="hint">{e.timeNote}</p></details>
+        {e.fetchStatus === "ready" ? <p className="hint">Положения сохранены</p> : <button className="btn-subtle" type="button" disabled={!!busy || e.busy} onClick={() => action(e.id, async () => {
           await overlayApi(`/api/eclipses/${e.id}/prepare`, {}); await load();
         })}>{busy === e.id || e.busy ? "Рассчитывается…" : "Подготовить карту"}</button>}
         {e.error && <p className="error">{e.error}</p>}
