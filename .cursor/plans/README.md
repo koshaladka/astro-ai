@@ -20,6 +20,11 @@
 Начни с Фазы 0.
 ```
 
+## Docs (деплой / эксплуатация)
+
+Агенты: смотреть [`docs/`](../../docs/) — [`deployment.md`](../../docs/deployment.md), [`docs/README.md`](../../docs/README.md).  
+См. также корневой [`AGENTS.md`](../../AGENTS.md).
+
 ## Референсы AI
 
 Карта примеров: [docs/reference/ai-providers/README.md](../../docs/reference/ai-providers/README.md)
