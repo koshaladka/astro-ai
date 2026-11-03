@@ -2,7 +2,7 @@
 
 Веб-приложение для построения натальной карты: форма → AI → Free Astrology API → MongoDB → интерпретация.
 
-Документы: [`docs/`](./docs/) (деплой/HTTPS — [`docs/deployment.md`](./docs/deployment.md)). Спеки: [`.cursor/plans/`](./.cursor/plans/). Для агентов: [`AGENTS.md`](./AGENTS.md).
+Документы: [`docs/`](./docs/) (спеки — [`docs/plans/`](./docs/plans/), деплой — [`docs/deployment.md`](./docs/deployment.md)). Для агентов: [`AGENTS.md`](./AGENTS.md).
 
 ## Быстрый старт
 node 22
@@ -141,10 +141,10 @@ app/           — Next.js UI + API routes
 lib/           — AI, astrology, MongoDB, pipeline
 mock/          — моки API (не удалять)
 src/index.js   — CLI-прототип
-docs/          — референсы AI-провайдеров
+docs/          — спеки, деплой, референсы (см. docs/README.md)
 ```
 
-Полная спека: `.cursor/plans/astro-app-spec.md`
+Полная спека: `docs/plans/astro-app-spec.md`
 
 
 Доделать -
