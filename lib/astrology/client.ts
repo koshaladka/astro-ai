@@ -30,7 +30,7 @@ function readMockFile(name: string) {
 }
 
 // Запрашивает данные у Western Astrology API
-async function fetchEndpoint(url: string, body: ApiPayload) {
+async function fetchEndpoint(url: string, body: ApiPayload, signal?: AbortSignal) {
   const apiKey = getAstrologyApiKey();
   if (!apiKey) {
     throw new Error("ASTROLOGY_API_KEY не задан в .env");
@@ -41,6 +41,7 @@ async function fetchEndpoint(url: string, body: ApiPayload) {
     url,
     {
       method: "POST",
+      signal,
       headers: {
         "Content-Type": "application/json",
         "x-api-key": apiKey,
@@ -81,4 +82,12 @@ export async function fetchChartData(body: ApiPayload) {
     fetchHouses(body),
   ]);
   return { planets, houses };
+}
+
+// Затмения нельзя заполнять фиксированными mock-данными другой даты.
+export async function fetchEclipsePlanets(body: ApiPayload) {
+  if (shouldUseMockAstrology()) {
+    throw new Error("Для карт затмений нужен реальный ASTROLOGY_API_KEY и отключённый mock-режим (включая AI_PROVIDER=mock)");
+  }
+  return fetchEndpoint(API_URLS.planets, body, AbortSignal.timeout(60_000));
 }
