@@ -4,7 +4,8 @@
 services:
   app:
     image: ${ASTRO_IMAGE:-ghcr.io/koshaladka/astro-ai:latest}
-    pull_policy: always
+    # Образ уже pull'ит workflow; always ломает ручной up без docker login
+    pull_policy: missing
     restart: unless-stopped
     env_file: .env
     environment:
@@ -12,7 +13,8 @@ services:
       MONGODB_URI: mongodb://${MONGO_ROOT_USER:-astro}:${MONGO_ROOT_PASSWORD:-astrosecret}@mongo:27017/${MONGO_DB:-astro}?authSource=admin
     depends_on:
       mongo:
-        condition: service_healthy
+        # service_healthy на 2ГБ часто ложно unhealthy (медленный mongosh) и блокирует app
+        condition: service_started
     ports:
       - "127.0.0.1:${APP_PORT:-4000}:3000"
     command: ["npm", "start"]
@@ -28,11 +30,12 @@ services:
     volumes:
       - mongo_data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
+      # mongosh на 2ГБ медленный — короткий timeout давал ложный unhealthy
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 15s
+      retries: 12
+      start_period: 40s
 
 volumes:
   mongo_data:
