@@ -9,5 +9,6 @@
 | [ai-providers.md](./ai-providers.md) | Переключение AI / `AI_MODEL` |
 | [ssh-access.md](./ssh-access.md) | SSH к VPS из любого Cloud-чата (секреты) |
 | [reference/ai-providers/](./reference/ai-providers/) | Референсы AI-провайдеров |
+| [../.agents/skills/](../.agents/skills/) / [../.cursor/skills/](../.cursor/skills/) | `/grill-with-docs` (+ `grilling`, `domain-modeling`) |
 
 Раньше спеки лежали в `.cursor/plans/` — перенесены сюда.

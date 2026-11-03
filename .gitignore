@@ -1,4 +1,6 @@
-.cursor/
+.cursor/*
+!.cursor/skills/
+!.cursor/skills/**
 .env
 .next/
 node_modules/
