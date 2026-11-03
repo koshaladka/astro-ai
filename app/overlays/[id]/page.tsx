@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { CollapsibleAnswer } from "@/components/CollapsibleAnswer";
 import { ECLIPSE_TYPES } from "@/lib/overlays/catalog";
 import { formatLongitude, eclipseLuminary } from "@/lib/overlays/aspects";
 import { overlayApi, utcLabel } from "@/lib/overlays/browser-api";
@@ -75,17 +76,22 @@ export default function OverlayPage({ params }: { params: { id: string } }) {
       </tr>)}</tbody>
     </table></div>}
     <section className="overlay-interpretation">
-      <div className="section-header"><h2 className="section-title">Расшифровка</h2>{overlay.aspects.length > 0 && <button type="button" className="btn-ghost" disabled={disabled} onClick={interpret}>{busy === "interpret" ? "ИИ готовит ответ…" : overlay.interpretation ? "Обновить расшифровку" : "Получить расшифровку"}</button>}</div>
+      <h2 className="section-title">Расшифровка</h2>
       {!overlay.interpretation && overlay.aspects.length > 0 && <p className="hint">Получите расшифровку аспектов затмения. Прежние трактовки другого набора аспектов не используются.</p>}
       {overlay.interpretation && <MarkdownContent>{overlay.interpretation}</MarkdownContent>}
       {(overlay.busy || busy) && <p className="hint" role="status">ИИ обрабатывает запрос…</p>}
       {overlay.interpretationError && <p className="error">{overlay.interpretationError}</p>}
+      {overlay.aspects.length > 0 && <div className="overlay-interpretation-actions">
+        <button type="button" className={overlay.interpretation ? "btn-subtle" : "btn-ghost"} disabled={disabled} onClick={interpret}>
+          {busy === "interpret" ? "ИИ готовит ответ…" : overlay.interpretation ? "Обновить расшифровку" : "Получить расшифровку"}
+        </button>
+      </div>}
     </section>
     <section><h2 className="section-title">Обсудить с ИИ</h2>
       {!overlay.messages.length && <p className="hint">Задайте вопрос по наложению или выберите аспект в таблице.</p>}
       <ul className="qa-list">{overlay.messages.map((m, i) => <li key={`${m.createdAt}-${i}`} className={m.role === "assistant" ? "qa-item qa-assistant" : "qa-item"}>
         <div className="qa-role">{m.role === "user" ? "Вы" : "ИИ"}</div>
-        {m.role === "assistant" ? <MarkdownContent>{m.content}</MarkdownContent> : <p>{m.content}</p>}
+        {m.role === "assistant" ? <CollapsibleAnswer>{m.content}</CollapsibleAnswer> : <p>{m.content}</p>}
         {m.aspectId && <small>Аспект: {overlay.aspects.find(a => a.id === m.aspectId)?.natal.name} — {overlay.aspects.find(a => a.id === m.aspectId)?.eclipse.name}</small>}
       </li>)}</ul>
       <form onSubmit={ask} className="qa-form">

@@ -474,3 +474,24 @@ select:focus, textarea:focus { outline: 2px solid var(--accent); }
 .overlay-selected-aspect { border-left: 2px solid var(--accent); padding-left: .75rem; }
 .overlay-interpretation { margin-bottom: 2rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+/* Второстепенные действия расшифровки и ответов чата. */
+button.btn-subtle {
+  background: transparent;
+  color: var(--muted);
+  border: 0;
+  padding: .35rem 0;
+  font-size: .8rem;
+  font-weight: 400;
+}
+button.btn-subtle:hover:not(:disabled) {
+  background: transparent;
+  color: var(--text);
+  text-decoration: underline;
+}
+button.btn-subtle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.overlay-interpretation-actions { margin-top: 1.25rem; }
+.qa-answer-toggle { margin-bottom: .35rem; }
