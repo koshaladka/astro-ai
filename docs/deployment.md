@@ -64,6 +64,8 @@ cd /opt/astro-ai
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
+В runner-образе нужны `lib/ai/prompts/` (промпт интерпретации читается с диска) и `mock/`.
+
 ## Env
 
 - Файл: `/opt/astro-ai/.env` (не в git).
