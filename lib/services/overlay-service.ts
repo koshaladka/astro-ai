@@ -101,7 +101,7 @@ export async function prepareEclipse(eclipseId: string) {
 
 function toView(r: OverlayRecord & { _id: mongoose.Types.ObjectId }): OverlayView {
   const current = currentOverlayContext(r);
-  return { id: String(r._id), natal: r.natal, eclipse: r.eclipse, aspects: current.aspects,
+  return { id: String(r._id), natal: { chartId: r.natal.chartId, label: `Карта · ${r.natal.chartId.slice(-6)}`, houses: r.natal.houses, positions: r.natal.positions }, eclipse: r.eclipse, aspects: current.aspects,
     interpretation: current.interpretation, interpretationStatus: current.interpretationStatus,
     interpretationError: current.interpretationError, messages: current.messages,
     busy: !!r.lockUntil && r.lockUntil > new Date(), createdAt: r.createdAt.toISOString() };
@@ -115,10 +115,10 @@ export async function getOverlay(id: string, userId: string) {
 export async function listOverlays(userId: string) {
   await db();
   const rows = await Overlay.find({ userId }).sort({ createdAt: -1 })
-    .select("natal.label natal.positions eclipse.type eclipse.maximumAt eclipse.positions aspects interpretationStatus calculationVersion aiCalculationVersion createdAt").lean();
+    .select("natalChartId natal.positions eclipse.type eclipse.maximumAt eclipse.positions aspects interpretationStatus calculationVersion aiCalculationVersion createdAt").lean();
   return rows.map(r => {
     const aspects = calculateEclipseAspects(r.natal.positions, r.eclipse.positions, r.eclipse.type);
-    return { id: String(r._id), label: r.natal.label, eclipseType: r.eclipse.type,
+    return { id: String(r._id), label: `Карта · ${r.natalChartId.slice(-6)}`, eclipseType: r.eclipse.type,
       maximumAt: r.eclipse.maximumAt, aspectCount: aspects.length,
       interpretationStatus: hasCurrentAiContext(r) ? r.interpretationStatus : aspects.length ? "idle" : "empty",
       createdAt: r.createdAt.toISOString() };
@@ -129,25 +129,28 @@ export async function createOverlay(input: unknown, userId: string) {
   await db();
   const key = { userId, natalChartId, eclipseId, calculationVersion: CALCULATION_VERSION };
   const existing = await Overlay.findOne({ userId, natalChartId, eclipseId }).sort({ createdAt: -1 }).lean();
-  if (existing) return { overlay: toView(existing), created: false };
   // Проверка владельца обязательна даже при знании чужого chartId.
-  const clients = await Client.find({ userId }).select("_id birthInput").lean();
-  const chart = await ChartResult.findOne({ _id: natalChartId, clientId: { $in: clients.map(c => c._id) } }).lean();
+  const clients = await Client.find({ userId }).select("_id").lean();
+  const chart = await ChartResult.findOne({ _id: natalChartId, deleting: { $ne: true }, clientId: { $in: clients.map(c => c._id) } }).lean();
   if (!chart) throw new OverlayError("Натальная карта не найдена", 404);
   const client = clients.find(c => String(c._id) === String(chart.clientId));
   if (!client) throw new OverlayError("Натальная карта не найдена", 404);
+  if (existing) return { overlay: toView(existing), created: false };
   const positions = extractPositions(chart.planets);
   const eclipse = await prepareEclipse(eclipseId);
   const aspects = calculateEclipseAspects(positions, eclipse.positions!, eclipse.type);
-  const birth = client.birthInput;
-  const label = `${chart.isPrimary ? "Основная карта" : "Карта"} · ${birth.date} ${birth.time} · ${birth.placeName}`;
+  const label = `${chart.isPrimary ? "Основная карта" : "Карта"} · ${natalChartId.slice(-6)}`;
   try {
-    const r = await Overlay.create({ ...key, natal: { chartId: natalChartId, label, birthInput: birth,
+    const r = await Overlay.create({ ...key, natal: { chartId: natalChartId, label,
       houses: chart.housesDisplay, positions },
       eclipse: { id: eclipseId, type: eclipse.type, maximumAt: eclipse.maximumAt.toISOString(),
         sourceUrl: eclipse.sourceUrl, sourceTime: eclipse.sourceTime, timeNote: eclipse.timeNote, positions: eclipse.positions! },
       aspects, interpretationStatus: aspects.length ? "idle" : "empty", interpretation: "", messages: [],
     });
+    if (!await ChartResult.exists({ _id: natalChartId, deleting: { $ne: true } })) {
+      await Overlay.deleteOne({ _id: r._id, userId });
+      throw new OverlayError("Натальная карта удалена", 404);
+    }
     return { overlay: toView(r), created: true };
   } catch (e) {
     if (duplicate(e)) { const r = await Overlay.findOne(key).lean(); if (r) return { overlay: toView(r), created: false }; }
@@ -220,5 +223,27 @@ export async function askOverlay(id: string, userId: string, input: unknown) {
     ] } } });
     if (!updated.matchedCount) throw new OverlayError("Задача ИИ была перезапущена. Откройте чат заново.", 409);
   } finally { await Overlay.updateOne({ _id: id, lockToken: token }, { $unset: { lockToken: 1, lockUntil: 1 } }); }
+  return getOverlay(id, userId);
+}
+
+// Захват той же блокировки, что у AI, исключает восстановление очищенной истории.
+export async function clearOverlayChat(id: string, userId: string) {
+  objectId.parse(id); await db();
+  const token = randomUUID();
+  const record = await Overlay.findOneAndUpdate({ _id: id, userId, ...leaseFilter() }, {
+    $set: { lockToken: token, lockUntil: new Date(Date.now() + 5 * 60_000) },
+  }, { new: true }).lean();
+  if (!record) {
+    if (!await Overlay.exists({ _id: id, userId })) throw new OverlayError("Наложение не найдено", 404);
+    throw new OverlayError("Дождитесь завершения ответа ИИ и повторите удаление", 409);
+  }
+  try {
+    await Overlay.updateOne({ _id: id, userId, lockToken: token }, {
+      $set: { messages: [], archivedContexts: (record.archivedContexts ?? []).map(context => ({ ...context, messages: [] })) },
+      $unset: { "previousContext.messages": 1 },
+    });
+  } finally {
+    await Overlay.updateOne({ _id: id, lockToken: token }, { $unset: { lockToken: 1, lockUntil: 1 } });
+  }
   return getOverlay(id, userId);
 }
