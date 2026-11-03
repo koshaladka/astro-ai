@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { BirthChartForm } from "@/components/BirthChartForm";
 import { ChartView } from "@/components/ChartView";
@@ -165,9 +164,6 @@ export default function HomePage() {
     <main>
       <div className="section-header">
         <h1>Моя карта</h1>
-        <Link href="/charts/new" className="btn-ghost">
-          Добавить карту
-        </Link>
       </div>
 
       <section className="card">
