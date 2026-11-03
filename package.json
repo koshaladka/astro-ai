@@ -26,6 +26,7 @@
     "geo-tz": "^8.1.7",
     "gigachat": "^0.0.14",
     "jose": "^5.9.6",
+    "jspdf": "^4.2.1",
     "langfuse": "^3.37.0",
     "luxon": "^3.7.2",
     "mongoose": "^8.9.0",
@@ -34,11 +35,14 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/luxon": "^3.7.1",
+    "@types/mdast": "^4.0.4",
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
