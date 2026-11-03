@@ -20,6 +20,7 @@ COPY --from=builder /app/package.json ./
 COPY --from=builder /app/next.config.mjs ./
 COPY --from=builder /app/mock ./mock
 COPY --from=builder /app/src ./src
+COPY --from=builder /app/lib/ai/prompts ./lib/ai/prompts
 
 EXPOSE 3000
 CMD ["npm", "start"]
