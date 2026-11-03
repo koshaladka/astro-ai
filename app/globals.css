@@ -513,3 +513,21 @@ button.btn-subtle:focus-visible {
 .chart-tables-block > summary { cursor: pointer; }
 .chart-tables-block > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .profile-email { overflow-wrap: anywhere; }
+
+/* Средний акцент для обновления расшифровки. */
+button.btn-secondary {
+  background: #2b3e68;
+  color: var(--text);
+  border: 1px solid #526da6;
+  padding: .6rem 1rem;
+  font-size: .875rem;
+  font-weight: 500;
+}
+button.btn-secondary:hover:not(:disabled) {
+  background: #354d80;
+  border-color: var(--accent);
+}
+button.btn-secondary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
