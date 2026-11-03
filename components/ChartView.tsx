@@ -162,8 +162,20 @@ export function ChartView({
     }
   }
 
+  async function clearChat() {
+    if (!confirm("Удалить всю переписку по этой карте? Расчёт и описание сохранятся.")) return;
+    setAsking(true); setAskError("");
+    try {
+      const response = await fetch(`/api/charts/${chartId}/chat`, { method: "DELETE" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Не удалось удалить чат");
+      setChart(previous => previous ? { ...previous, messages: [] } : previous);
+    } catch (error) { setAskError(error instanceof Error ? error.message : "Ошибка удаления чата"); }
+    finally { setAsking(false); }
+  }
+
   async function removeChart() {
-    if (!confirm("Удалить эту карту?")) return;
+    if (!confirm("Удалить эту карту, её наложения затмений и переписку?")) return;
     setDeleting(true);
     try {
       const res = await fetch(`/api/charts/${chartId}`, { method: "DELETE" });
@@ -268,7 +280,9 @@ export function ChartView({
 
       {chart.status === "complete" && (
         <section>
-          <h2 className="section-title">Вопросы по карте</h2>
+          <div className="section-header"><h2 className="section-title">Вопросы по карте</h2>
+            {!!chart.messages?.length && <button type="button" className="btn-ghost" disabled={asking} onClick={clearChat}>Удалить чат</button>}
+          </div>
           <div className="card">
             {(chart.messages ?? []).length > 0 && (
               <ul className="qa-list">

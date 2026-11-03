@@ -5,7 +5,7 @@ export type EclipseSnapshot = {
   sourceTime: string; timeNote: string; positions: Position[];
 };
 export type NatalSnapshot = {
-  chartId: string; label: string; birthInput: unknown; houses: unknown; positions: Position[];
+  chartId: string; label: string; houses: unknown; positions: Position[];
 };
 export type OverlayMessage = { role: "user" | "assistant"; content: string; aspectId?: string; createdAt: string };
 export type OverlayView = {

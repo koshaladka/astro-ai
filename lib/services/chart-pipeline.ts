@@ -4,6 +4,7 @@ import { fetchChartData } from "@/lib/astrology/client";
 import { buildChartDisplay, buildHousesPlanetsDisplay, type HouseDisplayRow, type HousePlanetsDisplayRow, type PlanetDisplayRow } from "@/lib/astrology/chart-format";
 import { connectDb } from "@/lib/db/connect";
 import { ChartRequest } from "@/lib/db/models/ChartRequest";
+import { Overlay } from "@/lib/db/models/Overlay";
 import { ChartResult } from "@/lib/db/models/ChartResult";
 import { Client, parseBirthInput } from "@/lib/db/models/Client";
 import { User } from "@/lib/db/models/User";
@@ -233,14 +234,14 @@ export async function getChartById(chartId: string, userId: string) {
     .populate("requestId")
     .lean();
 
-  if (!result) return null;
+  if (!result || result.deleting) return null;
 
   const client = result.clientId as {
     birthInput?: unknown;
     userId?: string | null;
   } | null;
 
-  if (client?.userId && client.userId !== userId) return null;
+  if (!client || client.userId !== userId) return null;
 
   const request = result.requestId as {
     status?: string;
@@ -274,6 +275,7 @@ export async function getChartById(chartId: string, userId: string) {
     raw: result.raw,
     apiPayload: request?.apiPayload,
     messages: result.messages ?? [],
+    messagesVersion: result.messagesVersion ?? 0,
     error: result.errorMessage || request?.validationErrors?.[0],
     createdAt: result.createdAt,
     updatedAt: result.updatedAt,
@@ -291,7 +293,7 @@ export async function getUserCharts(userId: string) {
   const clientMap = new Map(clients.map((c) => [c._id.toString(), c]));
   const clientIds = clients.map((c) => c._id);
 
-  const results = await ChartResult.find({ clientId: { $in: clientIds } })
+  const results = await ChartResult.find({ clientId: { $in: clientIds }, deleting: { $ne: true } })
     .sort({ createdAt: -1 })
     .select(
       "_id status interpretation clientId createdAt isPrimary planets houses planetsDisplay housesDisplay housesPlanetsDisplay"
@@ -332,6 +334,8 @@ export async function deleteChart(chartId: string, userId: string) {
   const client = await Client.findById(result.clientId).lean();
   if (!client || client.userId !== userId) return false;
 
+  await ChartResult.updateOne({ _id: result._id }, { $set: { deleting: true } });
+  await Overlay.deleteMany({ userId, natalChartId: String(result._id) });
   await ChartResult.deleteOne({ _id: result._id });
   await ChartRequest.deleteOne({ _id: result.requestId });
   await Client.deleteOne({ _id: client._id });
@@ -400,7 +404,9 @@ export async function askChartQuestion(chartId: string, userId: string, question
     history
   );
 
-  await ChartResult.findByIdAndUpdate(chartId, {
+  const saved = await ChartResult.updateOne({ _id: chartId, deleting: { $ne: true },
+    ...(chart.messagesVersion === 0 ? { $or: [{ messagesVersion: 0 }, { messagesVersion: { $exists: false } }] } : { messagesVersion: chart.messagesVersion }),
+  }, {
     $push: {
       messages: { $each: [
         { role: "user", content: question, createdAt: new Date() },
@@ -409,6 +415,7 @@ export async function askChartQuestion(chartId: string, userId: string, question
     },
   });
 
+  if (!saved.matchedCount) throw new Error("История удалена или карта изменилась. Откройте чат заново.");
   return { question, answer };
 }
 
@@ -488,4 +495,13 @@ export async function backfillChartDisplay() {
   }
 
   return { total: results.length, updated };
+}
+
+export async function clearChartChat(chartId: string, userId: string) {
+  const chart = await getChartById(chartId, userId);
+  if (!chart) return false;
+  const result = await ChartResult.updateOne({ _id: chartId, deleting: { $ne: true } }, {
+    $set: { messages: [] }, $inc: { messagesVersion: 1 },
+  });
+  return result.matchedCount > 0;
 }

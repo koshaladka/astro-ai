@@ -56,6 +56,17 @@ export default function OverlayPage({ params }: { params: { id: string } }) {
     } catch (e) { setError(e instanceof Error ? e.message : "Ошибка ИИ"); await load().catch(() => {}); }
     finally { setBusy(""); }
   }
+  async function clearChat() {
+    if (!confirm("Удалить всю переписку по этому наложению, включая архивные обсуждения? Расчёт и расшифровка сохранятся.")) return;
+    setBusy("clear"); setError("");
+    try {
+      const response = await fetch(`${api}/chat`, { method: "DELETE" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Не удалось удалить чат");
+      setOverlay(data.overlay);
+    } catch (error) { setError(error instanceof Error ? error.message : "Ошибка удаления чата"); }
+    finally { setBusy(""); }
+  }
   if (loading) return <main><p className="loading">Загружаем сохранённый расчёт…</p></main>;
   if (!overlay) return <main><Link href="/overlays">← Затмения</Link><p className="error" role="alert">{error || "Наложение не найдено"}</p></main>;
   const aspect = overlay.aspects.find(a => a.id === selected);
@@ -87,7 +98,7 @@ export default function OverlayPage({ params }: { params: { id: string } }) {
         </button>
       </div>}
     </section>
-    <section><h2 className="section-title">Обсудить с ИИ</h2>
+    <section><div className="section-header"><h2 className="section-title">Обсудить с ИИ</h2><button type="button" className="btn-ghost" disabled={disabled} onClick={clearChat}>Удалить чат</button></div>
       {!overlay.messages.length && <p className="hint">Задайте вопрос по наложению или выберите аспект в таблице.</p>}
       <ul className="qa-list">{overlay.messages.map((m, i) => <li key={`${m.createdAt}-${i}`} className={m.role === "assistant" ? "qa-item qa-assistant" : "qa-item"}>
         <div className="qa-role">{m.role === "user" ? "Вы" : "ИИ"}</div>

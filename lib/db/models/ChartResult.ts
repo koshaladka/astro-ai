@@ -71,6 +71,8 @@ const chartResultSchema = new Schema(
     raw: { type: Schema.Types.Mixed },
     interpretation: interpretationSchema,
     messages: [chartMessageSchema],
+    messagesVersion: { type: Number, default: 0 },
+    deleting: { type: Boolean, default: false },
     isPrimary: { type: Boolean, default: false },
     fetchedAt: Date,
     interpretedAt: Date,

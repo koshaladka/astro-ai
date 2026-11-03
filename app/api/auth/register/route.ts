@@ -31,8 +31,6 @@ export const POST = withRouteLog("auth.register.POST", async (request) => {
 
     const token = await createSessionToken({
       userId: user._id.toString(),
-      email: user.email,
-      name: user.name ?? undefined,
     });
 
     const response = NextResponse.json({
