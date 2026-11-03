@@ -1,4 +1,5 @@
 import mongoose, { Schema, type Model } from "mongoose";
+import { positionSchema } from "./overlay-schemas";
 import type { Position } from "@/lib/overlays/aspects";
 import { ECLIPSE_TYPES, type EclipseType } from "@/lib/overlays/catalog";
 export interface EclipseRecord {
@@ -15,7 +16,7 @@ const schema = new Schema<EclipseRecord>({
   sourceTime: { type: String, required: true, immutable: true },
   sourceScale: { type: String, required: true, immutable: true },
   precisionSeconds: { type: Number, required: true }, timeNote: { type: String, required: true },
-  createdBy: String, positions: { type: [Schema.Types.Mixed], default: undefined }, raw: Schema.Types.Mixed,
+  createdBy: String, positions: { type: [positionSchema], default: undefined }, raw: Schema.Types.Mixed,
   configuration: { type: String, required: true },
   fetchStatus: { type: String, enum: ["pending", "running", "ready", "error"], default: "pending" },
   error: String, lockToken: String, lockUntil: Date, fetchedAt: Date,
