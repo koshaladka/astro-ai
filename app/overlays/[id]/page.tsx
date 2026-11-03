@@ -82,7 +82,7 @@ export default function OverlayPage({ params }: { params: { id: string } }) {
       {(overlay.busy || busy) && <p className="hint" role="status">ИИ обрабатывает запрос…</p>}
       {overlay.interpretationError && <p className="error">{overlay.interpretationError}</p>}
       {overlay.aspects.length > 0 && <div className="overlay-interpretation-actions">
-        <button type="button" className={overlay.interpretation ? "btn-subtle" : "btn-ghost"} disabled={disabled} onClick={interpret}>
+        <button type="button" className={overlay.interpretation ? "btn-secondary" : "btn-ghost"} disabled={disabled} onClick={interpret}>
           {busy === "interpret" ? "ИИ готовит ответ…" : overlay.interpretation ? "Обновить расшифровку" : "Получить расшифровку"}
         </button>
       </div>}
