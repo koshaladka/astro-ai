@@ -7,6 +7,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 FROM base AS builder
+# Лимит кучи на случай сборки на слабой машине (CI обычно ок и без этого)
+ENV NODE_OPTIONS="--use-system-ca --max-old-space-size=1536"
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
