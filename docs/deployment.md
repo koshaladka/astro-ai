@@ -56,15 +56,30 @@ crontab -l | grep acme
 
 С доменом позже: обычный LE 90 дней (`-d example.com` без `shortlived`), тот же nginx.
 
-## Обновление кода
+## Обновление кода (каждый деплой)
+
+**Агенты: перед/после деплоя сверять этот чеклист.**
 
 ```bash
-# с машины агента / CI: архив или git pull в /opt/astro-ai
+# сохранить .env; залить код в /opt/astro-ai; не затирать .env
 cd /opt/astro-ai
 docker compose -f docker-compose.prod.yml up -d --build
+curl -sS https://104.253.18.4/api/health
+# smoke: POST /api/charts под сессией → status complete (не ENOENT на prompts)
 ```
 
-В runner-образе нужны `lib/ai/prompts/` (промпт интерпретации читается с диска) и `mock/`.
+### Docker runner — обязательно копировать с диска
+
+Next.js в prod **не** кладёт эти файлы в `.next`. Без них карта ломается.
+
+| Путь в образе | Зачем |
+|---------------|--------|
+| `lib/ai/prompts/` | `readFileSync` промпта интерпретации |
+| `mock/` | mock Astrology API |
+| `src/` | CLI-скрипты в образе |
+
+Правило: новый `readFileSync` / чтение файла в рантайме → сразу `COPY` в `Dockerfile` runner + строка в этой таблице.  
+Уже зафиксировано в `Dockerfile` (строки `COPY ... mock|src|lib/ai/prompts`).
 
 ## Env
 
