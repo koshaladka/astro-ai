@@ -62,12 +62,22 @@ crontab -l | grep acme
 
 **Агенты: перед/после деплоя сверять этот чеклист.** Не затирать `/opt/astro-ai/.env`.
 
+Быстро (агент / чат): `/git-pull` или:
+
+```bash
+bash scripts/git-pull-prod.sh
+```
+
+Вручную:
+
 ```bash
 bash scripts/setup-astro-ssh.sh
 ssh astro-vps 'cd /opt/astro-ai && git fetch origin main && git checkout main && git pull --ff-only origin main && docker compose -f docker-compose.prod.yml up -d --build'
 curl -sS https://104.253.18.4/api/health
 # smoke: POST /api/charts под сессией → status complete (не ENOENT на prompts)
 ```
+
+На самом сервере (после входа по SSH): команда `git_pull`.
 
 Если на сервере ещё нет `.git` — один раз: `apt-get install -y git`, сохранить `.env`, `git clone -b main https://github.com/koshaladka/astro-ai.git /opt/astro-ai`, вернуть `.env`.
 
