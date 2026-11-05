@@ -4,12 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ChartTables } from "@/components/ChartTables";
+import { DownloadPdfButton } from "@/components/DownloadPdfButton";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import type { HouseDisplayRow, PlanetDisplayRow } from "@/lib/astrology/chart-format";
-import {
-  buildChartMarkdown,
-  downloadMarkdownFile,
-} from "@/lib/astrology/chart-markdown-export";
+import { buildChartMarkdown } from "@/lib/astrology/chart-markdown-export";
 
 export type ChartViewData = {
   chartId: string;
@@ -121,20 +119,6 @@ export function ChartView({
     } finally {
       setAsking(false);
     }
-  }
-
-  function downloadDescription() {
-    if (!chart?.summary) return;
-
-    const markdown = buildChartMarkdown({
-      summary: chart.summary,
-      highlights: chart.highlights,
-      birthInput: chart.birthInput,
-      planetsDisplay: chart.planetsDisplay,
-      housesDisplay: chart.housesDisplay,
-    });
-
-    downloadMarkdownFile(markdown, `natal-chart-${chartId}.md`);
   }
 
   async function refreshDescription() {
@@ -257,13 +241,13 @@ export function ChartView({
           <div className="section-header">
             <h2 className="section-title">Описание</h2>
             <div className="section-header-actions">
-              <button
-                type="button"
-                onClick={downloadDescription}
-                disabled={!chart.summary}
-              >
-                Скачать
-              </button>
+              <DownloadPdfButton
+                markdown={chart.summary ? buildChartMarkdown({
+                  summary: chart.summary, birthInput: chart.birthInput,
+                  planetsDisplay: chart.planetsDisplay, housesDisplay: chart.housesDisplay,
+                }) : ""}
+                filename={`natal-chart-${chartId}.pdf`}
+              />
               <button type="button" onClick={refreshDescription} disabled={refreshing}>
                 {refreshing ? "Обновляем…" : "Обновить описание"}
               </button>
