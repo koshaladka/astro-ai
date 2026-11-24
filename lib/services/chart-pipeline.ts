@@ -423,7 +423,6 @@ export async function askChartQuestion(chartId: string, userId: string, question
       planets: chart.planets,
       houses: chart.houses,
       interpretation: chart.summary ?? undefined,
-      apiPayload: chart.apiPayload,
     },
     question,
     history
