@@ -4,11 +4,13 @@
 
 | | |
 |--|--|
-| Итерация | 0 — план |
+| Итерация | 0 — план, ответы на вопросы |
 | DNS A `astro-ai.top` | → `104.253.18.4` ✓ |
-| DNS `www` | нет записи |
+| DNS `www` | не нужен |
+| Редирект IP → домен | нет |
 | Текущий LE | только IP `104.253.18.4` (shortlived ~6 дн.) |
 | Почему «не защищено» | сертификат не содержит имя `astro-ai.top` (mismatch) |
+| После «делай» | LE на домен → nginx; IP-cert снимаем (один cert в nginx) |
 
 ## Что уже сделано
 
@@ -38,7 +40,7 @@ acme.sh --issue -d astro-ai.top --webroot /var/www/acme \
   --server letsencrypt --keylength ec-256
 ```
 
-4. Если нужен `www` — сначала DNS A/CNAME на тот же IP, затем `-d astro-ai.top -d www.astro-ai.top`.
+4. `www` не выпускаем.
 5. Install + reload:
 
 ```bash
@@ -54,24 +56,20 @@ acme.sh --install-cert -d astro-ai.top --ecc \
 
 1. В `/etc/nginx/sites-available/astro-ai`: `server_name astro-ai.top;` (и `www`, если есть).
 2. `nginx -t` → `systemctl reload nginx`.
-3. IP-доступ можно оставить или редиректить на домен (решить при «делай»).
+3. Редирект с IP на домен не делаем.
 
 ### И3 — доки
 
 1. `deployment.md`: URL `https://astro-ai.top`, секция «с доменом» вместо «только IP».
-2. Старый IP-cert: удалить из `acme.sh --list` после успешного доменного (или оставить до истечения).
+2. После успешного доменного cert: `acme.sh --remove` для IP shortlived (nginx держит один cert — доменный).
 
 ## Открытые вопросы
 
-| # | Вопрос | Дефолт если не отвечено |
-|---|--------|-------------------------|
-| 1 | Нужен `www.astro-ai.top`? | только apex |
-| 2 | Редирект с IP на домен? | нет, только домен в `server_name` |
+Нет — ответы: без `www`, без редиректа IP→домен.
 
 ## Порядок выполнения
 
-1. Ответ на вопросы (или дефолты).
-2. «делай» → И1 на VPS.
-3. И2 nginx.
-4. И3 доки + PR.
-5. Без merge/deploy workflow — только cert + nginx на сервере + PR с доками.
+1. «делай» → И1 на VPS.
+2. И2 nginx.
+3. И3 доки + PR.
+4. Без merge/deploy workflow — только cert + nginx на сервере + PR с доками.
