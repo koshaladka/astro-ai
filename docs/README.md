@@ -4,7 +4,7 @@
 
 | Путь | Что внутри |
 |------|------------|
-| [plans/](./plans/) | Спеки и планы фич |
+| [plans/](./plans/) | Спеки и планы фич (в т.ч. [ПДн / РФ‑хостинг](./plans/personal-data-compliance.md)) |
 | [deployment.md](./deployment.md) | VPS, HTTPS, обновление после merge в `main` |
 | [overlays.md](./overlays.md) | «Наложения»: начальное заполнение каталога, время и сохранение расчётов |
 | [ai-providers.md](./ai-providers.md) | Переключение AI / `AI_MODEL` |
