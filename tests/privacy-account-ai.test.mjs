@@ -15,12 +15,22 @@ const connectDb = async () => {};
 
 test('askAboutChart does not send birth date to the model', async () => {
   let messages;
+  let chatContext;
   const api = module('lib/ai/agents/interpreter.ts', ['askAboutChart'], {
     loadChartInterpretationPrompt: () => '',
     getAiProvider: () => ({}),
     buildChartDisplay: () => ({ planetsDisplay: [], housesDisplay: [], housesPlanetsDisplay: [] }),
     buildHousesPlanetsDisplay: () => [],
     formatChartContextForAi: () => 'PLANETS_ONLY',
+    buildNatalChatMessages: (context, question, history) => {
+      chatContext = context;
+      return [
+        { role: 'system', content: 'sys' },
+        { role: 'user', content: 'PLANETS_ONLY' },
+        ...history,
+        { role: 'user', content: question },
+      ];
+    },
     tracedChat: async (_provider, msgs) => {
       messages = msgs;
       return { output: 'ok', trace: {} };
@@ -38,8 +48,9 @@ test('askAboutChart does not send birth date to the model', async () => {
     'вопрос'
   );
 
-  const blob = JSON.stringify(messages);
+  const blob = JSON.stringify({ messages, chatContext });
   assert.match(blob, /PLANETS_ONLY/);
+  assert.equal('birthInput' in (chatContext ?? {}), false);
   assert.equal(blob.includes('1990-01-01'), false);
   assert.equal(blob.includes('Данные рождения'), false);
   assert.equal(blob.includes('Москва'), false);
