@@ -531,3 +531,58 @@ button.btn-secondary:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+
+.consent {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.consent input[type="checkbox"] {
+  width: auto;
+  margin: 0.2rem 0 0;
+  flex-shrink: 0;
+}
+
+.consent a {
+  color: var(--accent);
+}
+
+button.btn-danger {
+  background: transparent;
+  color: var(--error);
+  border: 1px solid var(--error);
+}
+
+button.btn-danger:hover:not(:disabled) {
+  background: rgba(255, 123, 123, 0.12);
+}
+
+.site-footer {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.site-footer a {
+  color: var(--muted);
+}
+
+.privacy-doc p,
+.privacy-doc ul {
+  color: var(--text);
+  margin: 0 0 1rem;
+}
+
+.privacy-doc ul {
+  padding-left: 1.2rem;
+}
+
+.privacy-doc .section-title {
+  margin-top: 1.25rem;
+}

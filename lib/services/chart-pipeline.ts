@@ -342,6 +342,32 @@ export async function deleteChart(chartId: string, userId: string) {
   return true;
 }
 
+/** Удаляет аккаунт: наложения, карты, клиенты, пользователь */
+export async function deleteUserAccount(userId: string) {
+  await connectDb();
+
+  const user = await User.findById(userId).lean();
+  if (!user) return false;
+
+  const clients = await Client.find({ userId }).select("_id").lean();
+  const clientIds = clients.map((c) => c._id);
+  const results = await ChartResult.find({ clientId: { $in: clientIds } })
+    .select("_id requestId")
+    .lean();
+
+  await Overlay.deleteMany({ userId });
+  if (clientIds.length > 0) {
+    await ChartResult.deleteMany({ clientId: { $in: clientIds } });
+    await Client.deleteMany({ userId });
+  }
+  const requestIds = results.map((r) => r.requestId).filter(Boolean);
+  if (requestIds.length > 0) {
+    await ChartRequest.deleteMany({ _id: { $in: requestIds } });
+  }
+  await User.deleteOne({ _id: userId });
+  return true;
+}
+
 /**
  * Полный пересчёт основной: новая primary по ДР профиля,
  * прежняя primary остаётся в списке без флага.
@@ -398,7 +424,6 @@ export async function askChartQuestion(chartId: string, userId: string, question
       houses: chart.houses,
       interpretation: chart.summary ?? undefined,
       apiPayload: chart.apiPayload,
-      birthInput: chart.birthInput,
     },
     question,
     history

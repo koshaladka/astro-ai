@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { BirthChartForm } from "@/components/BirthChartForm";
 import { ChartView } from "@/components/ChartView";
 import { CityPicker, type SelectedPlace } from "@/components/CityPicker";
@@ -39,6 +40,7 @@ function birthMatches(
 }
 
 export default function HomePage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [primary, setPrimary] = useState<ChartItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,6 +48,7 @@ export default function HomePage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [recalculating, setRecalculating] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [message, setMessage] = useState("");
   const [name, setName] = useState("");
   const [prefs, setPrefs] = useState<BirthPreferences>({});
@@ -138,6 +141,25 @@ export default function HomePage() {
     }
   }
 
+  async function deleteAccount() {
+    const ok = window.confirm(
+      "Удалить аккаунт целиком? Карты, чаты и профиль будут удалены без восстановления."
+    );
+    if (!ok) return;
+    setDeletingAccount(true);
+    setError("");
+    try {
+      const res = await fetch("/api/profile", { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Не удалось удалить аккаунт");
+      router.push("/register");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка");
+      setDeletingAccount(false);
+    }
+  }
+
   if (loading) {
     return (
       <main>
@@ -183,6 +205,14 @@ export default function HomePage() {
                   {recalculating ? "Считаем…" : "Пересчитать"}
                 </button>
               )}
+              <button
+                type="button"
+                className="btn-danger"
+                onClick={deleteAccount}
+                disabled={deletingAccount}
+              >
+                {deletingAccount ? "Удаляем…" : "Удалить аккаунт"}
+              </button>
             </div>
             {message && <p className="hint">{message}</p>}
             {error && <p className="error">{error}</p>}

@@ -10,6 +10,9 @@ const schema = z.object({
   email: z.string().email("Некорректный email"),
   password: z.string().min(6, "Минимум 6 символов"),
   name: z.string().min(1).optional(),
+  privacyAccepted: z.literal(true, {
+    errorMap: () => ({ message: "Нужно согласие с политикой персональных данных" }),
+  }),
 });
 
 export const POST = withRouteLog("auth.register.POST", async (request) => {

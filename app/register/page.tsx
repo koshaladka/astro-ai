@@ -15,6 +15,11 @@ export default function RegisterPage() {
     setError("");
 
     const form = new FormData(e.currentTarget);
+    if (form.get("privacyAccepted") !== "on") {
+      setError("Нужно согласие с политикой персональных данных");
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -23,6 +28,7 @@ export default function RegisterPage() {
           email: form.get("email"),
           password: form.get("password"),
           name: form.get("name") || undefined,
+          privacyAccepted: true,
         }),
       });
       const data = await res.json();
@@ -57,6 +63,16 @@ export default function RegisterPage() {
           autoComplete="new-password"
         />
         <p className="hint">Минимум 6 символов</p>
+
+        <label className="consent" htmlFor="privacyAccepted">
+          <input id="privacyAccepted" name="privacyAccepted" type="checkbox" required />
+          <span>
+            Согласен(на) с{" "}
+            <Link href="/privacy" target="_blank" rel="noreferrer">
+              политикой обработки персональных данных
+            </Link>
+          </span>
+        </label>
 
         <button type="submit" disabled={loading}>
           {loading ? "Создаём…" : "Зарегистрироваться"}
