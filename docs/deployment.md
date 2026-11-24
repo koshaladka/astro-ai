@@ -98,7 +98,7 @@ crontab -l | grep acme
 ```bash
 bash scripts/setup-astro-ssh.sh
 ASTRO_IMAGE=ghcr.io/koshaladka/astro-ai:latest bash scripts/git-pull-prod.sh
-curl -sS https://104.253.18.4/api/health
+curl -sS https://astro-ai.top/api/health
 ```
 
 Не использовать `docker compose … --build` на VPS (2 ГБ RAM — `next build` часто валит деплой).
