@@ -6,10 +6,10 @@
 2. `.env` на сервере (из zip); `POLZA_*` имена под код.
 3. Nginx: `:80` → redirect HTTPS, `:443` → `127.0.0.1:4000`.
 4. App слушает только localhost `:4000`.
-5. HTTPS без домена: Let's Encrypt **IP short-lived** (~6 дней) через `acme.sh`.
+5. HTTPS: **два** LE через `acme.sh` — домен `astro-ai.top` (~90 дн.) + IP shortlived (~6 дн.).
 6. Автопродление: cron `acme.sh --cron` (каждые 6 ч) + install-cert reload nginx.
 
-URL: `https://104.253.18.4`
+URL: `https://astro-ai.top` (также `https://104.253.18.4`)
 
 ## Стек на сервере
 
@@ -17,44 +17,54 @@ URL: `https://104.253.18.4`
 |-----------|-----|
 | Код / compose / `.env` | `/opt/astro-ai` |
 | Nginx site | `/etc/nginx/sites-available/astro-ai` |
-| Cert/key для nginx | `/etc/nginx/ssl/fullchain.cer`, `privkey.key` |
+| Cert домен | `/etc/nginx/ssl/astro-ai.top.fullchain.cer`, `astro-ai.top.key` |
+| Cert IP | `/etc/nginx/ssl/fullchain.cer`, `privkey.key` |
 | ACME (acme.sh) | `/root/.acme.sh/` |
 | Webroot ACME | `/var/www/acme` |
 
 Langfuse в prod **не** поднимаем (мало RAM ~2 ГБ).
 
-## HTTPS без домена (IP short-lived)
+## HTTPS: домен + IP
 
-Как у 3x-ui: LE профиль `shortlived`, сертификат на IP, ~6 дней.
+Nginx: два `server` на `:443` — `server_name astro-ai.top` (доменный cert) и `default_server` (IP-cert). ACME webroot на `:80` общий.
 
-1. Порт 80 свободен / nginx отдаёт `/.well-known/acme-challenge/` из `/var/www/acme`.
-2. Выпуск (один раз):
+### Домен `astro-ai.top` (90 дней)
+
+```bash
+acme.sh --issue -d astro-ai.top --webroot /var/www/acme \
+  --server letsencrypt --keylength ec-256
+
+acme.sh --install-cert -d astro-ai.top --ecc \
+  --fullchain-file /etc/nginx/ssl/astro-ai.top.fullchain.cer \
+  --key-file /etc/nginx/ssl/astro-ai.top.key \
+  --reloadcmd "systemctl reload nginx"
+```
+
+### IP shortlived (~6 дней)
+
+Как у 3x-ui: LE профиль `shortlived`.
 
 ```bash
 acme.sh --issue -d 104.253.18.4 --webroot /var/www/acme \
   --server letsencrypt --certificate-profile shortlived --keylength ec-256
-```
 
-3. Установка в nginx + reload:
-
-```bash
 acme.sh --install-cert -d 104.253.18.4 --ecc \
   --fullchain-file /etc/nginx/ssl/fullchain.cer \
   --key-file /etc/nginx/ssl/privkey.key \
   --reloadcmd "systemctl reload nginx"
 ```
 
-4. Продление: cron уже ставит `acme.sh --cron`; ARI выбирает окно (~каждые 3–4 дня). После renew файлы перезаписываются, nginx reload.
+Продление: cron `acme.sh --cron`; ARI выбирает окно. После renew — reload nginx.
 
 Проверка:
 
 ```bash
+curl -sS https://astro-ai.top/api/health
 curl -sS https://104.253.18.4/api/health
 # {"ok":true,"db":"ok"}
+acme.sh --list
 crontab -l | grep acme
 ```
-
-С доменом позже: обычный LE 90 дней (`-d example.com` без `shortlived`), тот же nginx.
 
 ## Деплой через GitHub Actions (основной путь)
 
@@ -88,7 +98,7 @@ crontab -l | grep acme
 ```bash
 bash scripts/setup-astro-ssh.sh
 ASTRO_IMAGE=ghcr.io/koshaladka/astro-ai:latest bash scripts/git-pull-prod.sh
-curl -sS https://104.253.18.4/api/health
+curl -sS https://astro-ai.top/api/health
 ```
 
 Не использовать `docker compose … --build` на VPS (2 ГБ RAM — `next build` часто валит деплой).

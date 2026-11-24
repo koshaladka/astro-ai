@@ -8,6 +8,7 @@
 | [profile-charts-ux.md](./profile-charts-ux.md) | Профиль, основная карта, Мои карты |
 | [eclipse-overlays.md](./eclipse-overlays.md) | «Наложения»: затмения 2026–2027, аспекты, сохранённые расчёты, ИИ и чат; реализация только после «делай» |
 | [personal-data-compliance.md](./personal-data-compliance.md) | ПДн, вход TG+email, Mini App, РФ‑хостинг, домен — план шагов |
+| [https-domain-astro-ai-top.md](./https-domain-astro-ai-top.md) | LE HTTPS на `astro-ai.top` (сейчас cert только на IP) |
 | [доработки.md](./доработки.md) | Backlog после MVP |
 
 ## Как запустить агента
