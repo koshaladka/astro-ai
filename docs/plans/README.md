@@ -7,6 +7,7 @@
 | [astro-app-spec.md](./astro-app-spec.md) | Полная спека Astro App (фронт + AI + API + MongoDB) |
 | [profile-charts-ux.md](./profile-charts-ux.md) | Профиль, основная карта, Мои карты |
 | [eclipse-overlays.md](./eclipse-overlays.md) | «Наложения»: затмения 2026–2027, аспекты, сохранённые расчёты, ИИ и чат; реализация только после «делай» |
+| [personal-data-compliance.md](./personal-data-compliance.md) | ПДн / 152‑ФЗ, РФ‑хостинг, домен, политика, сброс пароля — план шагов |
 | [доработки.md](./доработки.md) | Backlog после MVP |
 
 ## Как запустить агента

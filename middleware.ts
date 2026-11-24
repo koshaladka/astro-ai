@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getSessionFromRequest } from "@/lib/auth/session";
 
-const PUBLIC_PATHS = ["/login", "/register"];
+const PUBLIC_PATHS = ["/login", "/register", "/privacy"];
 const PUBLIC_API = ["/api/auth/login", "/api/auth/register", "/api/health"];
 
 export async function middleware(request: NextRequest) {

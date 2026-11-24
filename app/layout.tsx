@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Header } from "@/components/Header";
 import "./globals.css";
 
@@ -17,6 +18,9 @@ export default function RootLayout({
       <body>
         <Header />
         {children}
+        <footer className="site-footer">
+          <Link href="/privacy">Политика персональных данных</Link>
+        </footer>
       </body>
     </html>
   );

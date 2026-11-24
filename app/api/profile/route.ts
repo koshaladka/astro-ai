@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getSessionUser } from "@/lib/auth/session";
+import { clearSessionCookieOptions, getSessionUser } from "@/lib/auth/session";
 import { connectDb } from "@/lib/db/connect";
 import { User } from "@/lib/db/models/User";
-import { getUserCharts } from "@/lib/services/chart-pipeline";
+import { deleteUserAccount, getUserCharts } from "@/lib/services/chart-pipeline";
 import { withRouteLog } from "@/lib/utils/with-route-log";
 
 const patchSchema = z.object({
@@ -79,4 +79,21 @@ export const PATCH = withRouteLog("profile.PATCH", async (request) => {
     const message = error instanceof Error ? error.message : "Ошибка обновления профиля";
     return NextResponse.json({ error: message }, { status: 400 });
   }
+});
+
+// Удаляет аккаунт текущего пользователя и все связанные данные
+export const DELETE = withRouteLog("profile.DELETE", async () => {
+  const session = await getSessionUser();
+  if (!session) {
+    return NextResponse.json({ error: "Требуется авторизация" }, { status: 401 });
+  }
+
+  const ok = await deleteUserAccount(session.userId);
+  if (!ok) {
+    return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 });
+  }
+
+  const response = NextResponse.json({ ok: true });
+  response.cookies.set(clearSessionCookieOptions());
+  return response;
 });

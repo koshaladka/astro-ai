@@ -62,7 +62,6 @@ type ChartKnowledge = {
   houses?: unknown;
   interpretation?: string;
   apiPayload?: unknown;
-  birthInput?: unknown;
 };
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -139,9 +138,7 @@ export async function askAboutChart(
 Не вызывай внешние API и не выдумывай положения планет, знаки, дома или аспекты, которых нет в данных.
 Без медицинских и фаталистических предсказаний. Кратко и по делу.`;
 
-  const userContext = `Данные рождения: ${JSON.stringify(chart.birthInput ?? {})}
-
-${chartContext}
+  const userContext = `${chartContext}
 
 Интерпретация:
 ${chart.interpretation ?? "—"}`;
