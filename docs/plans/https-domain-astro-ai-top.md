@@ -10,7 +10,7 @@
 | Редирект IP → домен | нет |
 | Текущий LE | только IP `104.253.18.4` (shortlived ~6 дн.) |
 | Почему «не защищено» | сертификат не содержит имя `astro-ai.top` (mismatch) |
-| После «делай» | LE на домен → nginx; IP-cert снимаем (один cert в nginx) |
+| После «делай» | **два** cert: домен (90 дн.) + IP shortlived; оба в nginx |
 
 ## Что уже сделано
 
@@ -21,11 +21,9 @@
 
 ## Что осталось
 
-1. Выпустить обычный LE 90 дней на `astro-ai.top` (+ опционально `www`).
-2. Подставить cert в nginx, reload.
-3. `server_name` → домен; HTTP→HTTPS.
-4. Обновить `docs/deployment.md` (URL, команды).
-5. (Опц.) A/CNAME для `www`.
+1. Выпустить обычный LE 90 дней на `astro-ai.top`.
+2. Два `server` в nginx: домен + IP (`default_server`).
+3. Обновить `docs/deployment.md`.
 
 ## Итерации
 
@@ -40,32 +38,33 @@ acme.sh --issue -d astro-ai.top --webroot /var/www/acme \
   --server letsencrypt --keylength ec-256
 ```
 
-4. `www` не выпускаем.
-5. Install + reload:
+4. Install в **отдельные** файлы (IP-cert не затирать):
 
 ```bash
 acme.sh --install-cert -d astro-ai.top --ecc \
-  --fullchain-file /etc/nginx/ssl/fullchain.cer \
-  --key-file /etc/nginx/ssl/privkey.key \
+  --fullchain-file /etc/nginx/ssl/astro-ai.top.fullchain.cer \
+  --key-file /etc/nginx/ssl/astro-ai.top.key \
   --reloadcmd "systemctl reload nginx"
 ```
 
-6. Проверка: `curl -sS https://astro-ai.top/api/health` → `{"ok":true,...}` без SSL-ошибок.
+5. IP shortlived оставить как есть: `/etc/nginx/ssl/fullchain.cer` + `privkey.key` (или явные `ip.*` имена — по факту на сервере).
+6. Проверка: `curl -sS https://astro-ai.top/api/health` без SSL-ошибок.
 
-### И2 — nginx `server_name`
+### И2 — nginx: два SSL server
 
-1. В `/etc/nginx/sites-available/astro-ai`: `server_name astro-ai.top;` (и `www`, если есть).
-2. `nginx -t` → `systemctl reload nginx`.
-3. Редирект с IP на домен не делаем.
+1. Блок `server_name astro-ai.top` → доменный cert.
+2. Блок `listen 443 ssl default_server` (доступ по IP) → IP-cert.
+3. Оба проксируют на `127.0.0.1:4000`; ACME webroot на `:80` без изменений.
+4. `nginx -t` → reload.
+5. Проверки: `https://astro-ai.top` и `https://104.253.18.4` — оба без mismatch.
 
 ### И3 — доки
 
-1. `deployment.md`: URL `https://astro-ai.top`, секция «с доменом» вместо «только IP».
-2. После успешного доменного cert: `acme.sh --remove` для IP shortlived (nginx держит один cert — доменный).
+1. `deployment.md`: URL домена + что IP shortlived остаётся параллельно; пути к двум cert; renew через cron для обоих.
 
 ## Открытые вопросы
 
-Нет — ответы: без `www`, без редиректа IP→домен.
+Нет — без `www`, без редиректа IP→домен, **оба** сертификата оставляем.
 
 ## Порядок выполнения
 
